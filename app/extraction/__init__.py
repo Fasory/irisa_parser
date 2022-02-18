@@ -5,7 +5,7 @@ The purpose of this module is to extract data and
 associated metadata from a file.
 
 This module follows the controller module and
-precedes the processing module.
+precedes the preprocessing module.
 """
 
 # info
