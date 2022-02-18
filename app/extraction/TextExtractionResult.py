@@ -16,6 +16,7 @@ class TextExtractionResult:
     of data and metadata from a file. It gathers the name of
     the original file and a list of extracted pages.
     """
+
     def __init__(self, path):
         """ Constructor """
         if not isinstance(path, str):
@@ -36,7 +37,8 @@ class TextExtractionResult:
     def __add__(self, other):
         """ Adds a new TextPageResult to the list of extracted pages """
         if not isinstance(other, TextPageResult):
-            raise TypeError("must be TextPageResult, not " + type(other).__name__)
+            raise TypeError("must be TextPageResult, not " +
+                            type(other).__name__)
         self._pages.append(other)
         return self
 
@@ -47,6 +49,7 @@ class TextPageResult:
     a file. It gathers the number of the extracted page
     and a list of its content.
     """
+
     def __init__(self, number):
         """ Constructor """
         if not isinstance(number, int):
@@ -67,7 +70,8 @@ class TextPageResult:
     def __add__(self, other):
         """ Adds a new TextContentResult to the list of contents """
         if not isinstance(other, TextContentResult):
-            raise TypeError("must be TextContentResult, not " + type(other).__name__)
+            raise TypeError(
+                "must be TextContentResult, not " + type(other).__name__)
         self._contents.append(other)
         return self
 
@@ -83,7 +87,8 @@ class TextContentResult:
     def __init__(self, elt):
         """ Constructor """
         if not isinstance(elt, LTTextContainer):
-            raise TypeError("must be LTTextContainer, not " + type(elt).__name__)
+            raise TypeError("must be LTTextContainer, not " +
+                            type(elt).__name__)
         self._string = elt.get_text()
         self._position = elt.bbox
         self._font_sizes = {}
@@ -101,6 +106,22 @@ class TextContentResult:
         return self._position
 
     @property
+    def x(self):
+        return self._position[0]
+
+    @property
+    def y(self):
+        return self._position[1]
+
+    @property
+    def w(self):
+        return self._position[2] - self.x
+
+    @property
+    def h(self):
+        return self._position[3] - self.y
+
+    @property
     def font_sizes(self):
         """ Get dictionnary of font sizes """
         return self._font_sizes
@@ -114,6 +135,9 @@ class TextContentResult:
     def alignment(self):
         """ Get  alignment """
         return self._alignment
+
+    def is_near(other_content):
+        pass
 
 
 @unique
