@@ -1,5 +1,5 @@
 """
 To do
 """
-def run():
+def run(path):
     pass

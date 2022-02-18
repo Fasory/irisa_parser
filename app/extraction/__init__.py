@@ -10,6 +10,6 @@ le module processing.
 
 # info
 __version__ = "0.1"
-__author__ = "Clément Bouquet"
+__author__ = "Fasory"
 
 from extraction import run
