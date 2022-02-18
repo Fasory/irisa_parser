@@ -6,7 +6,7 @@ to give a representation of a file after the
 extraction of its data and metadata.
 """
 
-from pdfminer.layout import LTTextContainer
+from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical
 from enum import Enum, unique
 
 
@@ -79,7 +79,6 @@ class TextContentResult:
     used fonts, a list of used size and the position of
     the block on the page from which it comes.
     """
-
     def __init__(self, elt):
         """ Constructor """
         if not isinstance(elt, LTTextContainer):
@@ -89,6 +88,12 @@ class TextContentResult:
         self._font_sizes = {}
         self._fonts = {}
         self._alignment = None
+        for sub_elt in elt:
+            if self._alignment is None:
+                if isinstance(sub_elt, LTTextLineHorizontal):
+                    self._alignment = TextAlignment.HORIZONTAL
+                elif isinstance(sub_elt, LTTextLineVertical):
+                    self._alignment = TextAlignment.VERTICAL
 
     @property
     def string(self):
