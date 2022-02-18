@@ -6,6 +6,10 @@ to give a representation of a file after the
 extraction of its data and metadata.
 """
 
+from pdfminer.layout import LTTextContainer
+from enum import Enum, unique
+
+
 class TextExtractionResult:
     """
     This class represents the final result of the extraction
@@ -76,12 +80,15 @@ class TextContentResult:
     the block on the page from which it comes.
     """
 
-    def __init__(self):
+    def __init__(self, elt):
         """ Constructor """
-        self._string
-        self._position
-        self._font_sizes
-        self._fonts
+        if not isinstance(elt, LTTextContainer):
+            raise TypeError("must be LTTextContainer, not " + type(elt).__name__)
+        self._string = elt.get_text()
+        self._position = elt.bbox
+        self._font_sizes = {}
+        self._fonts = {}
+        self._alignment = None
 
     @property
     def string(self):
@@ -95,10 +102,22 @@ class TextContentResult:
 
     @property
     def font_sizes(self):
-        """ Get list of font sizes """
+        """ Get dictionnary of font sizes """
         return self._font_sizes
 
     @property
     def fonts(self):
-        """ Get list of fonts """
+        """ Get dictionnary of fonts """
         return self._fonts
+
+    @property
+    def alignment(self):
+        """ Get  alignment """
+        return self._alignment
+
+
+@unique
+class TextAlignment(Enum):
+    HORIZONTAL = 0
+    VERTICAL = 1
+    UNDEFINED = 2
