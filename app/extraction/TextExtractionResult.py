@@ -93,12 +93,25 @@ class TextContentResult:
         self._font_sizes = {}
         self._fonts = {}
         self._alignment = None
-        for sub_elt in elt:
-            if self._alignment is None:
-                if isinstance(sub_elt, LTTextLineHorizontal):
+        for line in elt:
+            # define alignment
+            if isinstance(line, LTTextLineHorizontal):
+                if self._alignment is None:
                     self._alignment = TextAlignment.HORIZONTAL
-                elif isinstance(sub_elt, LTTextLineVertical):
+                elif self._alignment is TextAlignment.VERTICAL:
+                    self._alignment = TextAlignment.UNDEFINED
+            elif isinstance(line, LTTextLineVertical):
+                if self._alignment is None:
                     self._alignment = TextAlignment.VERTICAL
+                elif self._alignment is TextAlignment.HORIZONTAL:
+                    self._alignment = TextAlignment.UNDEFINED
+            for char in line:
+                if char.size not in self._font_sizes.keys():
+                    self._font_sizes[char.size] = 0
+                self._font_sizes[char.size] += 1
+                if char.fontname not in self._fonts.keys():
+                    self._fonts[char.fontname] = 0
+                self._fonts[char.fontname] += 1
 
     @property
     def string(self):
@@ -112,18 +125,22 @@ class TextContentResult:
 
     @property
     def x(self):
+        """ Get position x in the top left corner """
         return self._position[0]
 
     @property
     def y(self):
+        """ Get position y in the top left corner """
         return self._position[1]
 
     @property
     def w(self):
+        """ Get width """
         return self._position[2] - self.x
 
     @property
     def h(self):
+        """ Get height """
         return self._position[3] - self.y
 
     @property
@@ -138,7 +155,7 @@ class TextContentResult:
 
     @property
     def alignment(self):
-        """ Get  alignment """
+        """ Get alignment """
         return self._alignment
 
     def is_near(other_content):
