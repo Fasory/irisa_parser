@@ -5,7 +5,7 @@ To do
 """
 
 # info
-__version__ = "to do"
-__author__ = "to do"
+__version__ = "0.1"
+__author__ = "Julie-Amélie Bidault"
 
 from controller import run
