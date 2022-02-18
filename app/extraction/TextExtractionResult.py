@@ -88,7 +88,7 @@ class TextContentResult:
         self._position = elt.bbox
         self._font_sizes = {}
         self._fonts = {}
-        self._alignments = {TextAlignment.HORIZONTAL : 0, TextAlignment.VERTICAL : 0}
+        self._alignment = None
 
     @property
     def string(self):
@@ -111,12 +111,13 @@ class TextContentResult:
         return self._fonts
 
     @property
-    def alignments(self):
-        """ Get dictionnary of alignments """
-        return self._alignments
+    def alignment(self):
+        """ Get  alignment """
+        return self._alignment
 
 
 @unique
 class TextAlignment(Enum):
     HORIZONTAL = 0
     VERTICAL = 1
+    UNDEFINED = 2
