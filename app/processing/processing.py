@@ -1,5 +1,9 @@
 """
-To do
+Processing step
 """
-def run():
+
+from TextProcessingResult import TextProcessingResult
+
+
+def run(extraction_result):
     pass
