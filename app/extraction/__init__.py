@@ -1,15 +1,15 @@
 # -*-coding:utf-8 -*-
 
 """
-Ce module a pour objectif d'extraire des données et
-les méta-données associées à partir d'un fichier.
+The purpose of this module is to extract data and
+associated metadata from a file.
 
-Ce module fait suite au module controller et précède
-le module processing.
+This module follows the controller module and
+precedes the processing module.
 """
 
 # info
-__version__ = "0.1"
+__version__ = "0.2"
 __author__ = "Fasory"
 
 from extraction import run

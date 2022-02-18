@@ -1,5 +1,12 @@
+# -*-coding:utf-8 -*-
+
 """
-To do
+This file is the main file of the extraction module.
 """
+
+import app.processing as processing
+import TextExtractionResult
+
 def run(path):
-    pass
+    """ Main function of module """
+    processing.run(TextExtractionResult(path))
