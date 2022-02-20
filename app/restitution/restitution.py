@@ -1,5 +1,5 @@
 """
-To do
+This file is the main file of the restitution module
 """
 import os
 from app.controller.controller import OUTPUT_DIR
