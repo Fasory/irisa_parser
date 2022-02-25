@@ -6,8 +6,9 @@ to give a representation of a file after the
 extraction of its data and metadata.
 """
 
-from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical
+import copy
 from enum import Enum, unique
+from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical
 
 
 class TextExtractionResult:
@@ -83,11 +84,13 @@ class TextContentResult:
     used fonts, a list of used size and the position of
     the block on the page from which it comes.
     """
+
     def __init__(self, elt):
         """ Constructor """
         if not isinstance(elt, LTTextContainer):
             raise TypeError("must be LTTextContainer, not " +
                             type(elt).__name__)
+        self._container = elt
         self._string = elt.get_text()
         self._position = elt.bbox
         self._font_sizes = {}
@@ -113,6 +116,16 @@ class TextContentResult:
                     self._fonts[char.fontname] = 0
                 self._fonts[char.fontname] += 1
 
+    def hdistance(self, other_content):
+        return self._container.hdistance(other_content.container)
+
+    def vdistance(self, other_content):
+        return self._container.vdistance(other_content.container)
+
+    @property
+    def container(self):
+        return self._container
+
     @property
     def string(self):
         """ Get raw string of content """
@@ -124,24 +137,24 @@ class TextContentResult:
         return self._position
 
     @property
-    def x(self):
+    def x1(self):
         """ Get position x in the top left corner """
         return self._position[0]
 
     @property
-    def y(self):
+    def y1(self):
         """ Get position y in the top left corner """
         return self._position[1]
 
     @property
-    def w(self):
+    def x2(self):
         """ Get width """
-        return self._position[2] - self.x
+        return self._position[2]
 
     @property
-    def h(self):
+    def y2(self):
         """ Get height """
-        return self._position[3] - self.y
+        return self._position[3]
 
     @property
     def font_sizes(self):
@@ -158,8 +171,41 @@ class TextContentResult:
         """ Get alignment """
         return self._alignment
 
-    def is_near(other_content):
-        pass
+    def is_near(self, other_content):
+        return self.vdistance(other_content) <= 10
+
+    @staticmethod
+    def _check_word(word):
+        return True  # condition à faire avec spacy
+
+    def merge_with(self, other_content):
+        new = copy.deepcopy(self)
+
+        # Splitted word
+        self_words = new._string.split(" ")
+        other_words = other_content.string.split(" ")
+
+        last_word = self_words[-1]
+        first_word_other = other_words[0]  # premier mot de other_content
+
+        insert_char = ""
+        if last_word.endswith("-"):
+            recreated_word = last_word[:-1] + first_word_other
+            if TextContentResult._check_word(recreated_word):
+                # reconstitue dernier mot de self
+                self_words[-1] = recreated_word
+                # supprime premier mot de other_content
+                other_words = other_words[1:]
+
+                insert_char = " "  # si dernier mot reconstitué, on insère un espace entre les 2 parties
+
+        new._string = " ".join(self_words) + \
+            insert_char + " ".join(other_words)
+
+        new._position[2] = other_content.position[2]
+        new._position[3] = other_content.position[3]
+
+        return new
 
 
 @unique
