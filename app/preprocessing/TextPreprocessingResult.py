@@ -10,7 +10,7 @@ pre-processing.
 class TextPreprocessingResult:
     """
     Represent the pre-processing result. It stores the content,
-    as TextExtractionResult, but not splitted in pages.
+    as TextExtractionResult.
     """
 
     def __init__(self, filename, contents):

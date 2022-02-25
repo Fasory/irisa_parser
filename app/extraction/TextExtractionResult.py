@@ -137,26 +137,6 @@ class TextContentResult:
         return self._position
 
     @property
-    def x1(self):
-        """ Get position x in the top left corner """
-        return self._position[0]
-
-    @property
-    def y1(self):
-        """ Get position y in the top left corner """
-        return self._position[1]
-
-    @property
-    def x2(self):
-        """ Get width """
-        return self._position[2]
-
-    @property
-    def y2(self):
-        """ Get height """
-        return self._position[3]
-
-    @property
     def font_sizes(self):
         """ Get dictionnary of font sizes """
         return self._font_sizes
@@ -171,8 +151,32 @@ class TextContentResult:
         """ Get alignment """
         return self._alignment
 
+    def major_font(self):
+        return max(self._fonts, key=self._fonts.get)
+
+    def major_font_size(self):
+        return max(self._font_sizes, key=self._font_sizes.get)
+
     def is_near(self, other_content):
-        return self.vdistance(other_content) <= 10
+        # Mot coupé entre 2 contents => true
+        self_words = self._string.split(" ")
+        other_words = other_content.string.split(" ")
+
+        last_word = self_words[-1]
+        first_word_other = other_words[0]  # premier mot de other_content
+        if last_word.endswith("-"):
+            recreated_word = last_word[:-1] + first_word_other
+            if not TextContentResult._check_word(recreated_word):
+                return False
+
+        # Police ou taille différente => false
+        if self.major_font().lower() != other_content.major_font().lower() or self.major_font_size() != other_content.major_font_size():
+            return False
+
+        # Distance trop grande => false
+        # if
+
+        return True
 
     @staticmethod
     def _check_word(word):
