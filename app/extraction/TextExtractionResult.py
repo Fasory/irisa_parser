@@ -51,12 +51,14 @@ class TextPageResult:
     and a list of its content.
     """
 
-    def __init__(self, number):
+    def __init__(self, number, width, height):
         """ Constructor """
         if not isinstance(number, int):
             raise TypeError("must be int, not " + type(number).__name__)
         self._number = number
         self._contents = []
+        self._width = width
+        self._height = height
 
     @property
     def number(self):
@@ -68,6 +70,16 @@ class TextPageResult:
         """ Get page content """
         return self._contents
 
+    @property
+    def width(self):
+        """ Get width """
+        return self._width
+
+    @property
+    def height(self):
+        """ Get height """
+        return self._height
+
     def __add__(self, other):
         """ Adds a new TextContentResult to the list of contents """
         if not isinstance(other, TextContentResult):
@@ -75,6 +87,22 @@ class TextPageResult:
                 "must be TextContentResult, not " + type(other).__name__)
         self._contents.append(other)
         return self
+
+    def contents_higher(self):
+        proper = []
+        limit = self._height/2
+        for content in self._contents:
+            if content.y1 >= limit:
+                proper.append(content)
+        return proper
+
+    def contents_lower(self):
+        proper = []
+        limit = self._height/2
+        for content in self._contents:
+            if content.y1 < limit:
+                proper.append(content)
+        return proper
 
 
 class TextContentResult:
