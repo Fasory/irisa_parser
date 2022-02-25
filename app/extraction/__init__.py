@@ -9,7 +9,7 @@ precedes the preprocessing module.
 """
 
 # info
-__version__ = "1.0"
+__version__ = "1.1"
 __author__ = "Fasory"
 
 from extraction import run

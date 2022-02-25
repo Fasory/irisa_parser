@@ -21,7 +21,7 @@ def extraction(path):
     current_number = 0
     for page in extract_pages(path, laparams = LAParams(char_margin = 20, all_texts = True)):
         current_number += 1
-        current_page = TextPageResult(current_number)
+        current_page = TextPageResult(current_number, page.width, page.height)
         for content in page:
             if isinstance(content, LTTextContainer):
                 current_page += TextContentResult(content)
