@@ -6,7 +6,9 @@ from app.controller.controller import OUTPUT_DIR
 from processing import TextProcessingResult
 
 def run(processingResult : TextProcessingResult):
-    
+    restitution(processingResult)
+
+def restitution(processingResult : TextProcessingResult) :
     file_name = processingResult.original_file_name().replace(".pdf",".txt")
 
     file_path = os.path.join(OUTPUT_DIR, file_name)
@@ -20,5 +22,8 @@ def run(processingResult : TextProcessingResult):
     file = open(file_path, "rwx")
 
     file.write(processingResult.title)
-    file.write(processingResult.authors())
+
+    for author in processingResult.authors() :
+        file.write(author)
+    
     file.write(processingResult.abstract())
