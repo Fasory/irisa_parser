@@ -20,5 +20,8 @@ def run(processingResult : TextProcessingResult):
     file = open(file_path, "rwx")
 
     file.write(processingResult.title)
-    file.write(processingResult.authors())
+
+    for author in processingResult.authors() :
+        file.write(author)
+    
     file.write(processingResult.abstract())
