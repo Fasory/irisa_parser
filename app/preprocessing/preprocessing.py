@@ -26,18 +26,19 @@ def organize_text(contents):
     new_contents = []
 
     i = 0
-    while i < len(contents) - 1:
-        c1 = contents[i]
-        c2 = contents[i + 1]
+    while i < len(contents):
+        # Fusionne toute la chaîne (si +2 contents à fusionner)
+        j = i
+        merged = contents[j]
+        while j + 1 < len(contents) and contents[j].is_near(contents[j + 1]):
+            next = contents[j + 1]
+            merged = merged.merge_with(next)
 
-        merged = c1
-        while c1.is_near(c2) and i < len(contents) - 1:
-            merged = merged.merge_with(c2)
+            j += 1
 
-            i += 1
-            c1 = contents[i]
-            c2 = contents[i + 1]
+        new_contents.append(merged)
 
+        i = j
         i += 1
 
     return new_contents
