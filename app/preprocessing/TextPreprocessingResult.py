@@ -17,6 +17,8 @@ class TextPreprocessingResult:
         """Initializes the pre-processing result"""
         self._filename = filename
         self._contents = contents
+        self._major_font = None
+        self._major_font_size = None
 
     @property
     def filename(self):
@@ -27,3 +29,13 @@ class TextPreprocessingResult:
     def contents(self):
         """Get the whole content"""
         return self._contents
+
+    @property
+    def major_font(self):
+        """Get the major font name"""
+        return self._major_font
+
+    @property
+    def major_font_size(self):
+        """Get the major font size"""
+        return self._major_font_size
