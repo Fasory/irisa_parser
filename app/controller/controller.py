@@ -9,10 +9,11 @@ Le controleur permet de vérifier les entrées du programme par :
 -- Output : Fichier
 """
 
+import app.extraction as extraction, sys, os, glob
+
 OUTPUT_DIR = "/out"
 # Ce module donne accès à tous les arguments de ligne de commande
-import sys
-import os
+
 
 def run():
     controler()
@@ -55,7 +56,11 @@ def controler():
     if not os.access(pathDirectory, os.F_OK | os.R_OK | os.W_OK):
         sys.exit("error -> you do not have write AND read permissions")
     
-    
+    for file in glob.glob(pathDirectory + "*.pdf") :
+        if not os.access(file, os.F_OK | os.R_OK | os.W_OK):
+            sys.exit("error -> you do not have write AND read permissions")
+            
+    extraction.run(pathDirectory)
 
 def errorUsage() :
     print("Usage: irisa_parser.py <options> <inputDirectory>")
