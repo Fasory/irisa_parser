@@ -88,6 +88,18 @@ class TextPageResult:
         self._contents.append(other)
         return self
 
+    def first_content(self):
+        return self._contents[0]
+
+    def delete_first_content(self):
+        self._contents.pop(0)
+
+    def last_content(self):
+        return self._contents[-1]
+
+    def change_last_content(self, content):
+        self._contents[-1] = content
+
     def contents_higher(self):
         proper = []
         limit = self._height/2
@@ -103,6 +115,27 @@ class TextPageResult:
             if min(content.position[1], content.position[3]) > limit:
                 proper.append(content)
         return proper
+
+    def organize_text(self):
+        new_contents = []
+
+        i = 0
+        while i < len(self._contents):
+            # Fusionne toute la chaîne (si +2 self._contents à fusionner)
+            j = i
+            merged = self._contents[j]
+            while j + 1 < len(self._contents) and self._contents[j].is_near(self._contents[j + 1]):
+                next = self._contents[j + 1]
+                merged.merge_with(next)
+
+                j += 1
+
+            new_contents.append(merged)
+
+            i = j
+            i += 1
+
+        self._contents = new_contents
 
 
 class TextContentResult:
@@ -194,8 +227,8 @@ class TextContentResult:
         first_word_other = other_words[0]  # premier mot de other_content
         if last_word.endswith("-"):
             recreated_word = last_word[:-1] + first_word_other
-            if not TextContentResult._check_word(recreated_word):
-                return False
+            if TextContentResult._check_word(recreated_word):
+                return True
 
         # Police ou taille différente => false
         if self.major_font().lower() != other_content.major_font().lower() or self.major_font_size() != other_content.major_font_size():
@@ -211,10 +244,8 @@ class TextContentResult:
         return True  # condition à faire avec spacy
 
     def merge_with(self, other_content):
-        new = copy.deepcopy(self)
-
         # Splitted word
-        self_words = new._string.split(" ")
+        self_words = self._string.split(" ")
         other_words = other_content.string.split(" ")
 
         last_word = self_words[-1]
@@ -231,13 +262,11 @@ class TextContentResult:
 
                 insert_char = " "  # si dernier mot reconstitué, on insère un espace entre les 2 parties
 
-        new._string = " ".join(self_words) + \
+        self._string = " ".join(self_words) + \
             insert_char + " ".join(other_words)
 
-        new._position[2] = other_content.position[2]
-        new._position[3] = other_content.position[3]
-
-        return new
+        self._position[2] = other_content.position[2]
+        self._position[3] = other_content.position[3]
 
 
 @unique
