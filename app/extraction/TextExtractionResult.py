@@ -116,6 +116,10 @@ class TextPageResult:
                 proper.append(content)
         return proper
 
+    def process_accents(self):
+        for c in self._contents:
+            c.process_accents()
+
     def organize_text(self):
         new_contents = []
 
@@ -217,6 +221,12 @@ class TextContentResult:
 
     def major_font_size(self):
         return max(self._font_sizes, key=self._font_sizes.get)
+
+    def process_accents(self):
+        self._string.replace("'A", "Á")
+        self._string.replace("'a", "á")
+        self._string.replace("¨a", "ä")
+        self._string.replace("`a", "à")
 
     def is_near(self, other_content):
         # Mot coupé entre 2 contents => true

@@ -12,6 +12,9 @@ def run(extraction_result):
     filename = extraction_result.file_name
     pages = extraction_result.pages
 
+    for p in pages:
+        p.process_accents()
+
     organize_pages(pages)
 
     processing.run(TextPreprocessingResult(filename, pages))
