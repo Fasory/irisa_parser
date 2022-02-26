@@ -12,33 +12,26 @@ def run(extraction_result):
     filename = extraction_result.file_name
     pages = extraction_result.pages
 
-    contents = []
-    for p in pages:
-        for c in p.contents:
-            contents.append(c)
+    organize_pages(pages)
 
-    contents = organize_text(contents)
-
-    processing.run(TextPreprocessingResult(filename, contents))
+    processing.run(TextPreprocessingResult(filename, pages))
 
 
-def organize_text(contents):
-    new_contents = []
-
+# Gère les contents à cheval entre 2 pages
+def organize_pages(pages):
     i = 0
-    while i < len(contents):
-        # Fusionne toute la chaîne (si +2 contents à fusionner)
-        j = i
-        merged = contents[j]
-        while j + 1 < len(contents) and contents[j].is_near(contents[j + 1]):
-            next = contents[j + 1]
-            merged = merged.merge_with(next)
+    while i + 1 < len(pages):
+        curr = pages[i]
+        curr.organize_text()
 
-            j += 1
+        next = pages[i + 1]
 
-        new_contents.append(merged)
+        curr_last = curr.last_content()
+        next_first = next.first_content()
 
-        i = j
+        if curr_last.is_near(next_first):
+            curr_last.merge_with(next_first)
+            curr.change_last_content(curr_last)
+            next.delete_first_content()
+
         i += 1
-
-    return new_contents

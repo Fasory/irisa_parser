@@ -13,10 +13,10 @@ class TextPreprocessingResult:
     as TextExtractionResult.
     """
 
-    def __init__(self, filename, contents):
+    def __init__(self, filename, pages):
         """Initializes the pre-processing result"""
         self._filename = filename
-        self._contents = contents
+        self._pages = pages
         self._major_font = None
         self._major_font_size = None
 
@@ -26,9 +26,9 @@ class TextPreprocessingResult:
         return self._filename
 
     @property
-    def contents(self):
-        """Get the whole content"""
-        return self._contents
+    def pages(self):
+        """Get the pages"""
+        return self._pages
 
     @property
     def major_font(self):
