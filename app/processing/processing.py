@@ -1,6 +1,7 @@
 """
 Processing step
 """
+import spacy
 
 from TextProcessingResult import TextProcessingResult
 from app import restitution
@@ -24,7 +25,7 @@ def find_title(pages):
     """
     if len(pages) == 0:
         return "N/A"
-    title = top_content(largest_contents(pages[0].contents_higher()))
+    title = top_content(largest_contents(pages[0].contents_higher(), TextAlignment.HORIZONTAL))
     if title is None:
         return "N/A"
     return title
@@ -37,7 +38,24 @@ def find_authors(pages):
     :param pages:
     :return:
     """
-    pass
+    authors = []
+    contents = pages[0].contents_higher()
+    nlp = spacy.load("xx_ent_wiki_sm")
+    for content in contents:
+        # on analyse ligne par ligne chaque content
+        for line in content.string.split("\n"):
+            nb_words = len([elt for elt in line.split(" ") if elt != ""])
+            doc = nlp(line)
+            # on détecte les noms
+            names = [ent.text for ent in doc.ents if ent.label_ == 'PERSON']
+            nb_name_words = 0
+            for name in names:
+                nb_name_words += len([word for word in name.split(" ") if word != ""])
+            # on n'analyse pas la suite du content si 50% des mots ne sont pas des noms
+            if nb_words / 2 > nb_name_words:
+                break
+            authors += names
+    return authors
 
 
 def find_abstract(pages):

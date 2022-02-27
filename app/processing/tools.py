@@ -3,10 +3,11 @@ Utilities of processing step
 """
 
 
-def largest_contents(contents):
+def largest_contents(contents, alignment=None):
     """
     Returns a list of contents that have the largest font size
 
+    :param alignment:
     :param contents:
     :return:
     """
@@ -16,6 +17,9 @@ def largest_contents(contents):
     elif len(contents) > 1:
         result_contents.append(contents[0])
         for content in contents[1:]:
+            if alignment is not None:
+                if content.alignment != alignment:
+                    continue
             if result_contents[0].major_font_size() == content.major_font_size():
                 result_contents.append(content)
             elif result_contents[0].major_font_size() < content.major_font_size():

@@ -5,7 +5,7 @@ To do
 """
 
 # info
-__version__ = "to do"
-__author__ = "to do"
+__version__ = "1.0"
+__author__ = "Fasory"
 
 from processing import run
