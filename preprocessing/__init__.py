@@ -11,4 +11,5 @@ precedes the processing module.
 __version__ = "0.1"
 __author__ = "Yoann DEWILDE"
 
-from preprocessing import run
+from .preprocessing import run
+from .TextPreprocessingResult import TextPreprocessingResult

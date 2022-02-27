@@ -12,4 +12,5 @@ precedes the preprocessing module.
 __version__ = "1.2"
 __author__ = "Fasory"
 
-from extraction import run
+from .extraction import run
+from .TextExtractionResult import TextExtractionResult, TextPageResult, TextContentResult, TextAlignment

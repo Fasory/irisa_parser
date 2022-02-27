@@ -4,11 +4,11 @@
 This file is the main file of the pre-preocessing module.
 """
 
-from TextPreprocessingResult import TextPreprocessingResult
-from app import processing
+from .TextPreprocessingResult import TextPreprocessingResult
+import processing
 
 
-def run(extraction_result):
+def run(extraction_result, target):
     filename = extraction_result.file_name
     pages = extraction_result.pages
 
@@ -17,7 +17,7 @@ def run(extraction_result):
 
     organize_pages(pages)
 
-    processing.run(TextPreprocessingResult(filename, pages))
+    processing.run(TextPreprocessingResult(filename, pages), target)
 
 
 # Gère les contents à cheval entre 2 pages

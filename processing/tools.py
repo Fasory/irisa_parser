@@ -42,10 +42,10 @@ def top_content(contents):
     else:
         top = contents[0]
         for content in contents[1:]:
-            if min(content.position()[1], content.position()[3]) < min(top.position()[1], top.position()[3]):
+            if min(content.position[1], content.position[3]) < min(top.position[1], top.position[3]):
                 top = content
-            elif (min(content.position()[1], content.position()[3]) == min(top.position()[1], top.position()[3]) and
-                  min(content.position()[0], content.position()[2]) < min(top.position()[0], top.position()[2])):
+            elif (min(content.position[1], content.position[3]) == min(top.position[1], top.position[3]) and
+                  min(content.position[0], content.position[2]) < min(top.position[0], top.position[2])):
                 top = content
         return top
 

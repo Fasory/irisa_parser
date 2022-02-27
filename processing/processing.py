@@ -3,17 +3,17 @@ Processing step
 """
 import spacy
 
-from TextProcessingResult import TextProcessingResult
-from app import restitution
-from app.extraction.TextExtractionResult import TextAlignment
-from app.processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces
+import restitution
+from extraction.TextExtractionResult import TextAlignment
+from .TextProcessingResult import TextProcessingResult
+from processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces
 
 
-def run(result):
+def run(result, target):
     restitution.run(TextProcessingResult(result.filename,
-                                         find_title(result.contents),
-                                         find_authors(result.contents),
-                                         find_abstract(result.contents)))
+                                         find_title(result.pages),
+                                         find_authors(result.pages),
+                                         find_abstract(result.pages)), target)
 
 
 def find_title(pages):
@@ -28,7 +28,7 @@ def find_title(pages):
     title = top_content(largest_contents(pages[0].contents_higher(), TextAlignment.HORIZONTAL))
     if title is None:
         return "N/A"
-    return title
+    return title.string
 
 
 def find_authors(pages):
@@ -40,7 +40,7 @@ def find_authors(pages):
     """
     authors = []
     contents = pages[0].contents_higher()
-    nlp = spacy.load("xx_ent_wiki_sm")
+    nlp = spacy.load("en_core_web_sm")
     for content in contents:
         # on analyse ligne par ligne chaque content
         for line in content.string.split("\n"):

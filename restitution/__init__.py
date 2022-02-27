@@ -12,4 +12,4 @@ This module is the last one and follows the processing module
 __version__ = "0.1"
 __author__ = "Méwen BERTHELOT"
 
-from restitution import run
+from .restitution import run

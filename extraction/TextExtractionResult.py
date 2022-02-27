@@ -8,7 +8,7 @@ extraction of its data and metadata.
 
 import copy
 from enum import Enum, unique
-from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical
+from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine
 
 
 class TextExtractionResult:
@@ -102,7 +102,7 @@ class TextPageResult:
 
     def contents_higher(self):
         proper = []
-        limit = self._height/2
+        limit = self._height / 2
         for content in self._contents:
             if min(content.position[1], content.position[3]) <= limit:
                 proper.append(content)
@@ -110,7 +110,7 @@ class TextPageResult:
 
     def contents_lower(self):
         proper = []
-        limit = self._height/2
+        limit = self._height / 2
         for content in self._contents:
             if min(content.position[1], content.position[3]) > limit:
                 proper.append(content)
@@ -173,13 +173,22 @@ class TextContentResult:
                     self._alignment = TextAlignment.VERTICAL
                 elif self._alignment is TextAlignment.HORIZONTAL:
                     self._alignment = TextAlignment.UNDEFINED
-            for char in line:
-                if char.size not in self._font_sizes.keys():
-                    self._font_sizes[char.size] = 0
-                self._font_sizes[char.size] += 1
-                if char.fontname not in self._fonts.keys():
-                    self._fonts[char.fontname] = 0
-                self._fonts[char.fontname] += 1
+            if isinstance(line, LTChar):
+                if line.size not in self._font_sizes.keys():
+                    self._font_sizes[line.size] = 0
+                self._font_sizes[line.size] += 1
+                if line.fontname not in self._fonts.keys():
+                    self._fonts[line.fontname] = 0
+                self._fonts[line.fontname] += 1
+            elif isinstance(line, LTTextLine):
+                for char in line:
+                    if isinstance(char, LTChar):
+                        if char.size not in self._font_sizes.keys():
+                            self._font_sizes[char.size] = 0
+                        self._font_sizes[char.size] += 1
+                        if char.fontname not in self._fonts.keys():
+                            self._fonts[char.fontname] = 0
+                        self._fonts[char.fontname] += 1
 
     def hdistance(self, other_content):
         return self._container.hdistance(other_content.container)
@@ -285,10 +294,10 @@ class TextContentResult:
                 insert_char = " "  # si dernier mot reconstitué, on insère un espace entre les 2 parties
 
         self._string = " ".join(self_words) + \
-            insert_char + " ".join(other_words)
+                       insert_char + " ".join(other_words)
 
-        self._position[2] = other_content.position[2]
-        self._position[3] = other_content.position[3]
+        self._position = (self._position[0], self._position[1], other_content.position[2], self._position[3])
+        self._position = (self._position[0], self._position[1], self._position[2], other_content.position[3])
 
 
 @unique

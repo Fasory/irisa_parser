@@ -8,4 +8,5 @@ To do
 __version__ = "1.0"
 __author__ = "Fasory"
 
-from processing import run
+from .processing import run
+from .TextProcessingResult import TextProcessingResult

@@ -20,15 +20,15 @@ class TextProcessingResult:
             - the authors
             - the abstract (if there is one)
         """
-        self._original_filename == filename
+        self._original_file_name = filename
         self._title = title
         self._authors = authors
         self._abstract = abstract
 
     @property
-    def original_filename(self):
+    def original_file_name(self):
         """Get the filename"""
-        return self._original_filename
+        return self._original_file_name
 
     @property
     def title(self):
