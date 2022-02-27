@@ -161,6 +161,7 @@ class TextContentResult:
         self._font_sizes = {}
         self._fonts = {}
         self._alignment = None
+
         for line in elt:
             # define alignment
             if isinstance(line, LTTextLineHorizontal):
@@ -232,22 +233,10 @@ class TextContentResult:
         return max(self._font_sizes, key=self._font_sizes.get)
 
     def process_accents(self):
-        self._string.replace("'A", "Á")
-        self._string.replace("¨A", "Ä")
-        self._string.replace("`A", "À")
-        self._string.replace("^A", "Â")
-        self._string.replace("'a", "á")
-        self._string.replace("¨a", "ä")
-        self._string.replace("`a", "à")
-        self._string.replace("^a", "â")
-        self._string.replace("'E", "É")
-        self._string.replace("¨E", "Ë")
-        self._string.replace("`E", "È")
-        self._string.replace("^E", "Ê")
-        self._string.replace("'e", "é")
-        self._string.replace("¨e", "ë")
-        self._string.replace("`e", "è")
-        self._string.replace("^e", "ê")
+        self._string = self._string.replace("´A", "Á").replace("¨A", "Ä").replace("`A", "À").replace("^A", "Â")\
+            .replace("´a", "á").replace("¨a", "ä").replace("`a", "à").replace("^a", "â").replace("´E", "É")\
+            .replace("¨E", "Ë").replace("`E", "È").replace("^E", "Ê").replace("´e", "é").replace("¨e", "ë")\
+            .replace("`e", "è").replace("^e", "ê").replace("c¸", "ç")
 
     def is_near(self, other_content):
         # Mot coupé entre 2 contents => true

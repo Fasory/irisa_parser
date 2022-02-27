@@ -47,7 +47,7 @@ def controler():
         while options.count() != 0:
             currentOption = options.pop()
             if currentOption == "-h" or currentOption == "--help":
-                print("")  # Faire un message pour les options possibles
+                print("test")  # Faire un message pour les options possibles
     """
     pathDirectory = var
 
@@ -68,6 +68,7 @@ def controler():
         shutil.rmtree(OUTPUT_DIR)
 
     for path in PDFPath:
+        print("Convert file " + path + "...")
         extraction.run(path, OUTPUT_DIR)
 
 

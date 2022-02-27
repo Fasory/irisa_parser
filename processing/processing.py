@@ -6,7 +6,7 @@ import spacy
 import restitution
 from extraction.TextExtractionResult import TextAlignment
 from .TextProcessingResult import TextProcessingResult
-from processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces
+from processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces, clear_beginning_line
 
 
 def run(result, target):
@@ -47,7 +47,7 @@ def find_authors(pages):
         # on analyse ligne par ligne chaque content
         for line in content.string.split("\n"):
             nb_words = len([elt for elt in line.split(" ") if elt != ""])
-            doc = nlp(line)
+            doc = nlp(clear_beginning_line(line))
             # on détecte les noms
             names = [ent.text for ent in doc.ents if ent.label_ == 'PERSON']
             nb_name_words = 0

@@ -79,3 +79,14 @@ def rm_multiple_spaces(string):
     :return:
     """
     return " ".join([word for word in string.split(" ") if word != ""])
+
+
+def clear_beginning_line(line):
+    words = line.split(" ")
+    checkpoint = 0
+    for word in words:
+        if len(word) > 0 and word[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            return " ".join(words[checkpoint:])
+        else:
+            checkpoint += 1
+    return ""
