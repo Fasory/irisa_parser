@@ -224,9 +224,21 @@ class TextContentResult:
 
     def process_accents(self):
         self._string.replace("'A", "Á")
+        self._string.replace("¨A", "Ä")
+        self._string.replace("`A", "À")
+        self._string.replace("^A", "Â")
         self._string.replace("'a", "á")
         self._string.replace("¨a", "ä")
         self._string.replace("`a", "à")
+        self._string.replace("^a", "â")
+        self._string.replace("'E", "É")
+        self._string.replace("¨E", "Ë")
+        self._string.replace("`E", "È")
+        self._string.replace("^E", "Ê")
+        self._string.replace("'e", "é")
+        self._string.replace("¨e", "ë")
+        self._string.replace("`e", "è")
+        self._string.replace("^e", "ê")
 
     def is_near(self, other_content):
         # Mot coupé entre 2 contents => true

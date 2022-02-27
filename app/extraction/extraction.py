@@ -5,7 +5,7 @@ This file is the main file of the extraction module.
 """
 
 from pdfminer.high_level import extract_pages
-from pdfminer.layout import LAParams, LTTextContainer
+from pdfminer.layout import LAParams, LTTextContainer, LTFigure
 
 import app.processing as processing
 from TextExtractionResult import TextExtractionResult, TextPageResult, TextContentResult
@@ -19,11 +19,22 @@ def run(path):
 def extraction(path):
     result = TextExtractionResult(path)
     current_number = 0
-    for page in extract_pages(path, laparams = LAParams(char_margin = 20, all_texts = True)):
+    for page in extract_pages(path, laparams=LAParams(char_margin=20, all_texts=True)):
         current_number += 1
         current_page = TextPageResult(current_number, page.width, page.height)
         for content in page:
-            if isinstance(content, LTTextContainer):
+            if isinstance(content, LTFigure):
+                current_page = figure_recurring(current_page, content)
+            elif isinstance(content, LTTextContainer):
                 current_page += TextContentResult(content)
         result += current_page
     return result
+
+
+def figure_recurring(current_page, figure):
+    for content in figure:
+        if isinstance(content, LTFigure):
+            current_page = figure_recurring(current_page, content)
+        elif isinstance(content, LTTextContainer):
+            current_page += TextContentResult(content)
+    return current_page
