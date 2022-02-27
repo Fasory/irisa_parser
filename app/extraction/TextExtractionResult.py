@@ -6,7 +6,6 @@ to give a representation of a file after the
 extraction of its data and metadata.
 """
 
-import copy
 from enum import Enum, unique
 from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical
 
@@ -239,6 +238,38 @@ class TextContentResult:
         self._string.replace("¨e", "ë")
         self._string.replace("`e", "è")
         self._string.replace("^e", "ê")
+        self._string.replace("'I", "Í")
+        self._string.replace("¨I", "Ï")
+        self._string.replace("`I", "Ì")
+        self._string.replace("^I", "Î")
+        self._string.replace("'i", "í")
+        self._string.replace("¨i", "ï")
+        self._string.replace("`i", "ì")
+        self._string.replace("^i", "î")
+        self._string.replace("'O", "Ó")
+        self._string.replace("¨O", "Ö")
+        self._string.replace("`O", "Ò")
+        self._string.replace("^O", "Ô")
+        self._string.replace("'o", "ó")
+        self._string.replace("¨o", "ö")
+        self._string.replace("`o", "ò")
+        self._string.replace("^o", "ô")
+        self._string.replace("'U", "Ú")
+        self._string.replace("¨U", "Ü")
+        self._string.replace("`U", "Ù")
+        self._string.replace("^U", "Û")
+        self._string.replace("'u", "ú")
+        self._string.replace("¨u", "ü")
+        self._string.replace("`u", "ù")
+        self._string.replace("^u", "û")
+        self._string.replace("'Y", "Ý")
+        self._string.replace("¨Y", "Ÿ")
+        self._string.replace("`Y", "Ỳ")
+        self._string.replace("^Y", "Ŷ")
+        self._string.replace("'y", "ý")
+        self._string.replace("¨y", "ÿ")
+        self._string.replace("`y", "ỳ")
+        self._string.replace("^y", "ŷ")
 
     def is_near(self, other_content):
         # Mot coupé entre 2 contents => true
