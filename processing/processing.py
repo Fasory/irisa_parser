@@ -49,8 +49,8 @@ def find_authors(pages):
             nb_words = len([elt for elt in line.split(" ") if elt != ""])
             doc = nlp(clear_beginning_line(line))
             # on détecte les noms
-            names = [ent.text.replace("\\", "").replace("∗", "").strip() for ent in doc.ents if ent.label_ == 'PERSON' and "laborato" not in ent.text.lower() and
-                     "universit" not in ent.text.lower()]
+            names = [ent.text.replace("\\", "").replace("∗", "").strip() for ent in doc.ents if ent.label_ == 'PERSON'
+                     and "laborato" not in ent.text.lower() and "universit" not in ent.text.lower()]
             nb_name_words = 0
             for name in names:
                 nb_name_words += len([word for word in name.split(" ") if word != ""])
