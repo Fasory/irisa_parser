@@ -8,61 +8,71 @@ Le controleur permet de vérifier les entrées du programme par :
 -- Input : String (commande)
 -- Output : Fichier
 """
+import shutil
+from os import listdir
 
-import app.extraction as extraction, sys, os, glob
+import extraction
+import glob
+import os
+import sys
 
-OUTPUT_DIR = "/out"
 # Ce module donne accès à tous les arguments de ligne de commande
 
 
 def run():
     controler()
 
+
 def controler():
     # On vérifie qu'il n'y a qu'un seul et unique argument
     if len(sys.argv) != 2:
         errorUsage()
-    
     i = 1
     options = []
     var = sys.argv[i]
-    while (var.startswith('-')) :
+
+    """
+    while (var.startswith('-')):
         options.append(var)
-        i+=1
+        i += 1
         var = sys.argv[i]
 
-    if options.count() == 0 :
-        var = sys.argv[i+1] 
+    if len(options) == 0:
+        var = sys.argv[i + 1]
 
-    if not var.count('/') :
+    if not var.count('/'):
         errorUsage()
 
-    if(options.count()) :
-        while options.count() != 0 :
+    if (options.count()):
+        while options.count() != 0:
             currentOption = options.pop()
-            if currentOption == "-h" or currentOption == "--help" :
-                print("") # Faire un message pour les options possibles
-            """
-            TO DO
-            Options suivantes
-            Penser à gérer aussi les -hdshqdabzd avec plusieurs lettres collées
-            """   
-    
+            if currentOption == "-h" or currentOption == "--help":
+                print("test")  # Faire un message pour les options possibles
+    """
     pathDirectory = var
-    
+
     # On vérifie si le répertoire/fichier entré existe
-    if os.path.exists(pathDirectory)!=True:
+    if os.path.exists(pathDirectory) != True:
         sys.exit("error -> <pathDirectory> does not exist")
     if not os.access(pathDirectory, os.F_OK | os.R_OK | os.W_OK):
         sys.exit("error -> you do not have write AND read permissions")
-    
-    for file in glob.glob(pathDirectory + "*.pdf") :
-        if not os.access(file, os.F_OK | os.R_OK | os.W_OK):
-            sys.exit("error -> you do not have write AND read permissions")
-            
-    extraction.run(pathDirectory)
 
-def errorUsage() :
+    PDFPath = []
+
+    for file in listdir(pathDirectory):
+        if os.access(os.path.join(pathDirectory, file), os.F_OK | os.R_OK | os.W_OK) and file[-4:] == ".pdf":
+            PDFPath.append(os.path.join(pathDirectory, file))
+
+    OUTPUT_DIR = os.path.join(pathDirectory, "out")
+    if (os.path.exists(OUTPUT_DIR)):
+        shutil.rmtree(OUTPUT_DIR)
+
+    for path in PDFPath:
+        print("Convert file " + path + "...")
+        extraction.run(path, OUTPUT_DIR)
+
+
+def errorUsage():
     print("Usage: irisa_parser.py <options> <inputDirectory>")
     print(exit)
     exit()

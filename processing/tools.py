@@ -3,10 +3,11 @@ Utilities of processing step
 """
 
 
-def largest_contents(contents):
+def largest_contents(contents, alignment=None):
     """
     Returns a list of contents that have the largest font size
 
+    :param alignment:
     :param contents:
     :return:
     """
@@ -16,6 +17,9 @@ def largest_contents(contents):
     elif len(contents) > 1:
         result_contents.append(contents[0])
         for content in contents[1:]:
+            if alignment is not None:
+                if content.alignment != alignment:
+                    continue
             if result_contents[0].major_font_size() == content.major_font_size():
                 result_contents.append(content)
             elif result_contents[0].major_font_size() < content.major_font_size():
@@ -38,10 +42,10 @@ def top_content(contents):
     else:
         top = contents[0]
         for content in contents[1:]:
-            if min(content.position()[1], content.position()[3]) < min(top.position()[1], top.position()[3]):
+            if min(content.position[1], content.position[3]) < min(top.position[1], top.position[3]):
                 top = content
-            elif (min(content.position()[1], content.position()[3]) == min(top.position()[1], top.position()[3]) and
-                  min(content.position()[0], content.position()[2]) < min(top.position()[0], top.position()[2])):
+            elif (min(content.position[1], content.position[3]) == min(top.position[1], top.position[3]) and
+                  min(content.position[0], content.position[2]) < min(top.position[0], top.position[2])):
                 top = content
         return top
 
@@ -59,10 +63,10 @@ def closer_content(contents, target):
     x, y = target.position[0], target.position[3]
     for content in contents:
         if ((content.position[0] <= x <= content.position[2] or content.position[2] <= x <= content.position[0]) and
-                min(content.position[1], content.position[3]) > y):
+                max(content.position[1], content.position[3]) < y):
             if closer is None:
                 closer = content
-            elif min(closer.position[1], closer.position[3]) > min(content.position[1], content.position[3]):
+            elif max(closer.position[1], closer.position[3]) < max(content.position[1], content.position[3]):
                 closer = content
     return closer
 
@@ -75,3 +79,14 @@ def rm_multiple_spaces(string):
     :return:
     """
     return " ".join([word for word in string.split(" ") if word != ""])
+
+
+def clear_beginning_line(line):
+    words = line.split(" ")
+    checkpoint = 0
+    for word in words:
+        if len(word) > 0 and word[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            return " ".join(words[checkpoint:])
+        else:
+            checkpoint += 1
+    return ""

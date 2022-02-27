@@ -8,4 +8,4 @@ To do
 __version__ = "0.1"
 __author__ = "Julie-Amélie Bidault"
 
-from controller import run
+from .controller import run

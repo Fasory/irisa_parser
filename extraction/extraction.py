@@ -3,21 +3,22 @@
 """
 This file is the main file of the extraction module.
 """
+import os.path
 
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LAParams, LTTextContainer, LTFigure
 
-import app.processing as processing
-from TextExtractionResult import TextExtractionResult, TextPageResult, TextContentResult
+import preprocessing
+from .TextExtractionResult import TextExtractionResult, TextPageResult, TextContentResult
 
 
-def run(path):
+def run(path, target):
     """ Main function of module """
-    processing.run(extraction(path))
+    preprocessing.run(extraction(path), target)
 
 
 def extraction(path):
-    result = TextExtractionResult(path)
+    result = TextExtractionResult(os.path.basename(path))
     current_number = 0
     for page in extract_pages(path, laparams=LAParams(char_margin=20, all_texts=True)):
         current_number += 1
