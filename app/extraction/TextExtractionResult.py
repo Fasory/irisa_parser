@@ -6,9 +6,8 @@ to give a representation of a file after the
 extraction of its data and metadata.
 """
 
-import copy
 from enum import Enum, unique
-from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine
+from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical
 
 
 class TextExtractionResult:
@@ -102,17 +101,17 @@ class TextPageResult:
 
     def contents_higher(self):
         proper = []
-        limit = self._height / 2
+        limit = self._height/2
         for content in self._contents:
-            if max(content.position[1], content.position[3]) >= limit:
+            if min(content.position[1], content.position[3]) <= limit:
                 proper.append(content)
         return proper
 
     def contents_lower(self):
         proper = []
-        limit = self._height / 2
+        limit = self._height/2
         for content in self._contents:
-            if max(content.position[1], content.position[3]) < limit:
+            if min(content.position[1], content.position[3]) > limit:
                 proper.append(content)
         return proper
 
@@ -161,7 +160,6 @@ class TextContentResult:
         self._font_sizes = {}
         self._fonts = {}
         self._alignment = None
-
         for line in elt:
             # define alignment
             if isinstance(line, LTTextLineHorizontal):
@@ -174,22 +172,13 @@ class TextContentResult:
                     self._alignment = TextAlignment.VERTICAL
                 elif self._alignment is TextAlignment.HORIZONTAL:
                     self._alignment = TextAlignment.UNDEFINED
-            if isinstance(line, LTChar):
-                if line.size not in self._font_sizes.keys():
-                    self._font_sizes[line.size] = 0
-                self._font_sizes[line.size] += 1
-                if line.fontname not in self._fonts.keys():
-                    self._fonts[line.fontname] = 0
-                self._fonts[line.fontname] += 1
-            elif isinstance(line, LTTextLine):
-                for char in line:
-                    if isinstance(char, LTChar):
-                        if char.size not in self._font_sizes.keys():
-                            self._font_sizes[char.size] = 0
-                        self._font_sizes[char.size] += 1
-                        if char.fontname not in self._fonts.keys():
-                            self._fonts[char.fontname] = 0
-                        self._fonts[char.fontname] += 1
+            for char in line:
+                if char.size not in self._font_sizes.keys():
+                    self._font_sizes[char.size] = 0
+                self._font_sizes[char.size] += 1
+                if char.fontname not in self._fonts.keys():
+                    self._fonts[char.fontname] = 0
+                self._fonts[char.fontname] += 1
 
     def hdistance(self, other_content):
         return self._container.hdistance(other_content.container)
@@ -233,10 +222,54 @@ class TextContentResult:
         return max(self._font_sizes, key=self._font_sizes.get)
 
     def process_accents(self):
-        self._string = self._string.replace("´A", "Á").replace("¨A", "Ä").replace("`A", "À").replace("^A", "Â")\
-            .replace("´a", "á").replace("¨a", "ä").replace("`a", "à").replace("^a", "â").replace("´E", "É")\
-            .replace("¨E", "Ë").replace("`E", "È").replace("^E", "Ê").replace("´e", "é").replace("¨e", "ë")\
-            .replace("`e", "è").replace("^e", "ê").replace("c¸", "ç")
+        self._string.replace("'A", "Á")
+        self._string.replace("¨A", "Ä")
+        self._string.replace("`A", "À")
+        self._string.replace("^A", "Â")
+        self._string.replace("'a", "á")
+        self._string.replace("¨a", "ä")
+        self._string.replace("`a", "à")
+        self._string.replace("^a", "â")
+        self._string.replace("'E", "É")
+        self._string.replace("¨E", "Ë")
+        self._string.replace("`E", "È")
+        self._string.replace("^E", "Ê")
+        self._string.replace("'e", "é")
+        self._string.replace("¨e", "ë")
+        self._string.replace("`e", "è")
+        self._string.replace("^e", "ê")
+        self._string.replace("'I", "Í")
+        self._string.replace("¨I", "Ï")
+        self._string.replace("`I", "Ì")
+        self._string.replace("^I", "Î")
+        self._string.replace("'i", "í")
+        self._string.replace("¨i", "ï")
+        self._string.replace("`i", "ì")
+        self._string.replace("^i", "î")
+        self._string.replace("'O", "Ó")
+        self._string.replace("¨O", "Ö")
+        self._string.replace("`O", "Ò")
+        self._string.replace("^O", "Ô")
+        self._string.replace("'o", "ó")
+        self._string.replace("¨o", "ö")
+        self._string.replace("`o", "ò")
+        self._string.replace("^o", "ô")
+        self._string.replace("'U", "Ú")
+        self._string.replace("¨U", "Ü")
+        self._string.replace("`U", "Ù")
+        self._string.replace("^U", "Û")
+        self._string.replace("'u", "ú")
+        self._string.replace("¨u", "ü")
+        self._string.replace("`u", "ù")
+        self._string.replace("^u", "û")
+        self._string.replace("'Y", "Ý")
+        self._string.replace("¨Y", "Ÿ")
+        self._string.replace("`Y", "Ỳ")
+        self._string.replace("^Y", "Ŷ")
+        self._string.replace("'y", "ý")
+        self._string.replace("¨y", "ÿ")
+        self._string.replace("`y", "ỳ")
+        self._string.replace("^y", "ŷ")
 
     def is_near(self, other_content):
         # Mot coupé entre 2 contents => true
@@ -283,10 +316,10 @@ class TextContentResult:
                 insert_char = " "  # si dernier mot reconstitué, on insère un espace entre les 2 parties
 
         self._string = " ".join(self_words) + \
-                       insert_char + " ".join(other_words)
+            insert_char + " ".join(other_words)
 
-        self._position = (self._position[0], self._position[1], other_content.position[2], self._position[3])
-        self._position = (self._position[0], self._position[1], self._position[2], other_content.position[3])
+        self._position[2] = other_content.position[2]
+        self._position[3] = other_content.position[3]
 
 
 @unique

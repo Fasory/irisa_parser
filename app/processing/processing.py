@@ -1,0 +1,69 @@
+"""
+Processing step
+"""
+
+from TextProcessingResult import TextProcessingResult
+from app import restitution
+from app.extraction.TextExtractionResult import TextAlignment
+from app.processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces
+
+
+def run(result):
+    restitution.run(TextProcessingResult(result.filename,
+                                         find_title(result.contents),
+                                         find_authors(result.contents),
+                                         find_abstract(result.contents)))
+
+
+def find_title(pages):
+    """
+    Return the string which contains the title of the article
+
+    :param pages:
+    :return:
+    """
+    if len(pages) == 0:
+        return "N/A"
+    title = top_content(largest_contents(pages[0].contents_higher()))
+    if title is None:
+        return "N/A"
+    return title
+
+
+def find_authors(pages):
+    """
+    Return a string list of authors
+
+    :param pages:
+    :return:
+    """
+    pass
+
+
+def find_abstract(pages):
+    """
+    Return the string which contains the abstract of the article
+
+    :param pages:
+    :return:
+    """
+    for content in pages[0].contents:
+        # filtre les contenus uniquement horizontaux
+        if content.alignment is TextAlignment.HORIZONTAL:
+            # recherche basée sur le mot "abstract"
+            if "abstract" in content.string[:15].lower():
+                # cas où le titre de la section "Abstract" et le paragraphe sont dans le même content
+                if len(content.string) > 15:
+                    return content.string
+                # cas où le titre de la section "Abstract" et le paragraphe sont dans deux contents différents
+                else:
+                    abstract = closer_content(pages[0].contents, content).string
+                    if abstract is None:
+                        return "N/A"
+                    else:
+                        return abstract
+            # recherche par formulation d'origine
+            elif ("this article" in rm_multiple_spaces(content.string[:75]).lower() and
+                  ("present" in content.string[12:75].lower() or "introduce" in content.string[12:75].lower())):
+                return content.string
+    return "N/A"
