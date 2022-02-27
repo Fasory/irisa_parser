@@ -76,16 +76,16 @@ def find_abstract(pages):
             if "abstract" in content.string[:15].lower():
                 # cas où le titre de la section "Abstract" et le paragraphe sont dans le même content
                 if len(content.string) > 15:
-                    return content.string
+                    return content.string.replace("\n", " ") + "\n"
                 # cas où le titre de la section "Abstract" et le paragraphe sont dans deux contents différents
                 else:
                     abstract = closer_content(pages[0].contents, content).string
                     if abstract is None:
                         return "N/A"
                     else:
-                        return abstract
+                        return abstract.replace("\n", " ") + "\n"
             # recherche par formulation d'origine
             elif ("this article" in rm_multiple_spaces(content.string[:75]).lower() and
                   ("present" in content.string[12:75].lower() or "introduce" in content.string[12:75].lower())):
-                return content.string
+                return content.string.replace("\n", " ") + "\n"
     return "N/A"

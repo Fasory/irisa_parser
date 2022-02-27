@@ -20,6 +20,9 @@ def restitution(processingResult, OUTPUT_DIR):
         os.mkdir(OUTPUT_DIR)
 
     with open(file_path, 'w', encoding='utf-8') as file:
+        file.write("Fichier original : ")
+        file.write(processingResult.original_file_name + "\n")
+
         file.write("Titre : ")
         file.write(processingResult.title)
 
