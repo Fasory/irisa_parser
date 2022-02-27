@@ -236,7 +236,7 @@ class TextContentResult:
         self._string = self._string.replace("´A", "Á").replace("¨A", "Ä").replace("`A", "À").replace("^A", "Â")\
             .replace("´a", "á").replace("¨a", "ä").replace("`a", "à").replace("^a", "â").replace("´E", "É")\
             .replace("¨E", "Ë").replace("`E", "È").replace("^E", "Ê").replace("´e", "é").replace("¨e", "ë")\
-            .replace("`e", "è").replace("^e", "ê").replace("c¸", "ç")
+            .replace("`e", "è").replace("^e", "ê").replace("c¸", "ç").replace("¨i", "ï").replace("^i", "î")
 
     def is_near(self, other_content):
         # Mot coupé entre 2 contents => true

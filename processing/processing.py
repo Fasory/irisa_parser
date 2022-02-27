@@ -49,10 +49,12 @@ def find_authors(pages):
             nb_words = len([elt for elt in line.split(" ") if elt != ""])
             doc = nlp(clear_beginning_line(line))
             # on détecte les noms
-            names = [ent.text for ent in doc.ents if ent.label_ == 'PERSON']
+            names = [ent.text.replace("\\", "").replace("∗", "").strip() for ent in doc.ents if ent.label_ == 'PERSON' and "laborato" not in ent.text.lower() and
+                     "universit" not in ent.text.lower()]
             nb_name_words = 0
             for name in names:
                 nb_name_words += len([word for word in name.split(" ") if word != ""])
+            print(line)
             # on n'analyse pas la suite du content si 50% des mots ne sont pas des noms
             if nb_words / 2 > nb_name_words:
                 break
