@@ -104,7 +104,7 @@ class TextPageResult:
         proper = []
         limit = self._height / 2
         for content in self._contents:
-            if min(content.position[1], content.position[3]) <= limit:
+            if max(content.position[1], content.position[3]) >= limit:
                 proper.append(content)
         return proper
 
@@ -112,7 +112,7 @@ class TextPageResult:
         proper = []
         limit = self._height / 2
         for content in self._contents:
-            if min(content.position[1], content.position[3]) > limit:
+            if max(content.position[1], content.position[3]) < limit:
                 proper.append(content)
         return proper
 

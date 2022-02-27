@@ -28,7 +28,7 @@ def find_title(pages):
     title = top_content(largest_contents(pages[0].contents_higher(), TextAlignment.HORIZONTAL))
     if title is None:
         return "N/A"
-    return title.string
+    return title.string.replace("\n", " ") + "\n"
 
 
 def find_authors(pages):
@@ -39,6 +39,8 @@ def find_authors(pages):
     :return:
     """
     authors = []
+    if len(pages) == 0:
+        return authors
     contents = pages[0].contents_higher()
     nlp = spacy.load("en_core_web_sm")
     for content in contents:
@@ -65,6 +67,8 @@ def find_abstract(pages):
     :param pages:
     :return:
     """
+    if len(pages) == 0:
+        return "N/A"
     for content in pages[0].contents:
         # filtre les contenus uniquement horizontaux
         if content.alignment is TextAlignment.HORIZONTAL:

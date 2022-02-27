@@ -63,10 +63,10 @@ def closer_content(contents, target):
     x, y = target.position[0], target.position[3]
     for content in contents:
         if ((content.position[0] <= x <= content.position[2] or content.position[2] <= x <= content.position[0]) and
-                min(content.position[1], content.position[3]) > y):
+                max(content.position[1], content.position[3]) < y):
             if closer is None:
                 closer = content
-            elif min(closer.position[1], closer.position[3]) > min(content.position[1], content.position[3]):
+            elif max(closer.position[1], closer.position[3]) < max(content.position[1], content.position[3]):
                 closer = content
     return closer
 
