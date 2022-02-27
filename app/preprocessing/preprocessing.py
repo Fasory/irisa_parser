@@ -5,7 +5,7 @@ This file is the main file of the pre-preocessing module.
 """
 
 from TextPreprocessingResult import TextPreprocessingResult
-import processing
+from app import processing
 
 
 def run(extraction_result):
