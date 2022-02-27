@@ -54,7 +54,6 @@ def find_authors(pages):
             nb_name_words = 0
             for name in names:
                 nb_name_words += len([word for word in name.split(" ") if word != ""])
-            print(line)
             # on n'analyse pas la suite du content si 50% des mots ne sont pas des noms
             if nb_words / 2 > nb_name_words:
                 break
