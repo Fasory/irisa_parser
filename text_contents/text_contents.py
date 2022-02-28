@@ -240,13 +240,13 @@ class TextContentResult:
         self._string = self._string.replace("´A", "Á").replace("¨A", "Ä").replace("`A", "À").replace("^A", "Â")\
             .replace("´a", "á").replace("¨a", "ä").replace("`a", "à").replace("^a", "â").replace("´E", "É")\
             .replace("¨E", "Ë").replace("`E", "È").replace("^E", "Ê").replace("´e", "é").replace("¨e", "ë")\
-            .replace("`e", "è").replace("^e", "ê").replace("c¸", "ç").replace("'I", "Í").replace("¨I", "Ï")\
-            .replace("`I", "Ì").replace("^I", "Î").replace("'i", "í").replace("¨i", "ï").replace("`i", "ì")\
-            .replace("^i", "î").replace("'O", "Ó").replace("¨O", "Ö").replace("`O", "Ò").replace("^O", "Ô")\
-            .replace("'o", "ó").replace("¨o", "ö").replace("`o", "ò").replace("^o", "ô").replace("'U", "Ú")\
-            .replace("¨U", "Ü").replace("`U", "Ù").replace("^U", "Û").replace("'u", "ú").replace("¨u", "ü")\
-            .replace("`u", "ù").replace("^u", "û").replace("'Y", "Ý").replace("¨Y", "Ÿ").replace("`Y", "Ỳ")\
-            .replace("^Y", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("^y", "ŷ")
+            .replace("`e", "è").replace("^e", "ê").replace("c¸", "ç").replace("´I", "Í").replace("¨I", "Ï")\
+            .replace("`I", "Ì").replace("^I", "Î").replace("´i", "í").replace("¨i", "ï").replace("`i", "ì")\
+            .replace("^i", "î").replace("´O", "Ó").replace("¨O", "Ö").replace("`O", "Ò").replace("^O", "Ô")\
+            .replace("´o", "ó").replace("¨o", "ö").replace("`o", "ò").replace("^o", "ô").replace("´U", "Ú")\
+            .replace("¨U", "Ü").replace("`U", "Ù").replace("^U", "Û").replace("´u", "ú").replace("¨u", "ü")\
+            .replace("`u", "ù").replace("^u", "û").replace("´Y", "Ý").replace("¨Y", "Ÿ").replace("`Y", "Ỳ")\
+            .replace("^Y", "Ŷ").replace("´y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("^y", "ŷ")
 
     @staticmethod
     def _check_word(word):

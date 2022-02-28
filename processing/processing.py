@@ -46,19 +46,40 @@ def find_authors(pages):
     for content in contents:
         # on analyse ligne par ligne chaque content
         for line in content.string.split("\n"):
-            nb_words = len([elt for elt in line.split(" ") if elt != ""])
-            doc = nlp(clear_beginning_line(line))
+            clear_line = clear_beginning_line(line)
+            ln_words = len(clear_line)
+            doc = nlp(clear_line)
             # on détecte les noms
-            names = [ent.text.replace("\\", "").replace("∗", "").strip() for ent in doc.ents if ent.label_ == 'PERSON' and "laborato" not in ent.text.lower() and
-                     "universit" not in ent.text.lower()]
-            nb_name_words = 0
+            names = [ent.text.replace("\\", "").replace("∗", "").strip() for ent in doc.ents if ent.label_ == 'PERSON'
+                     and "laborato" not in ent.text.lower() and "universit" not in ent.text.lower()]
+            ln_name_words = 0
             for name in names:
-                nb_name_words += len([word for word in name.split(" ") if word != ""])
-            print(line)
-            # on n'analyse pas la suite du content si 50% des mots ne sont pas des noms
-            if nb_words / 2 > nb_name_words:
+                ln_name_words += len(name)
+            print("words : ", ln_words, " names : ", ln_name_words, " ratio : ", ln_words / 4 * 3)
+            #print(ln_words / 4 * 3 < ln_name_words)
+            print(names)
+            # si 70% des mots sont des noms, alors on estime qu'on a tout détecté dans la ligne
+            if ln_words / 10 * 7 < ln_name_words:
+                authors += names
+            # si 40% des mots ne sont des noms, on estime qu'on a une liste de noms
+            elif ln_words / 10 * 4 < ln_name_words:
+                for name in clear_line.split(","):
+                    authors.append(name.replace("and", "").replace("\\", "").replace("∗", "").strip())
+            # si moins de 20% des mots sont des noms, on ignore le content
+            elif ln_words / 10 * 2 > ln_name_words:
                 break
-            authors += names
+            # si la ligne ne commence pas par un des noms détecter, on ignore le content
+            else:
+                ignore = True
+                for name in names:
+                    if clear_line.startswith(name):
+                        ignore = False
+                        break
+                if ignore:
+                    break
+                # on ajoute les noms détectés
+                for name in names:
+                    authors += name.split("  ")
     return authors
 
 
