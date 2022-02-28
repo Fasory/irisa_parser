@@ -18,6 +18,7 @@ def run(path, target):
 
 
 def extraction(path):
+    print("======", path, "============")
     result = TextExtractionResult(os.path.basename(path))
     current_number = 0
     for page in extract_pages(path, laparams=LAParams(char_margin=20, all_texts=True)):
