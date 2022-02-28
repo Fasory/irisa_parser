@@ -341,11 +341,11 @@ class TextContentResult:
             if "-" in w:
                 new = w.replace("-", "")
                 new = new.replace("\n", "")
-                print("RECONSTI for", new, end="")
+                #print("RECONSTI for", new, end="")
                 if TextContentResult._check_word(new):
                     words[i] = new
-                    print("    ok")
-                print("")
+                    #print("    ok")
+                # print("")
 
         self._string = " ".join(words).replace(" :", ":")\
             .replace(" .", ".").replace(" !", "!")\

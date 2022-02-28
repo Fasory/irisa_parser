@@ -16,10 +16,10 @@ def run(extraction_result, target):
         p.merge_all()
         p.process_accents()
 
-    print("###########################################################")
-    print("FIN PREPROC")
-    for p in pages:
-        for c in p.contents:
-            print("CONTENT\n", c)
+    # print("###########################################################")
+    #print("FIN PREPROC")
+    # for p in pages:
+    #    for c in p.contents:
+    #        print("CONTENT\n", c)
 
     processing.run(TextPreprocessingResult(filename, pages), target)
