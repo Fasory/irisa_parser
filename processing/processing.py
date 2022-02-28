@@ -6,14 +6,15 @@ import spacy
 import restitution
 from extraction.TextExtractionResult import TextAlignment
 from .TextProcessingResult import TextProcessingResult
-from processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces, clear_beginning_line
+from processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces, clear_beginning_line, \
+    hard_clear_line, percent_proper_names, under_contents
 
 
 def run(result, target):
-    restitution.run(TextProcessingResult(result.filename,
-                                         find_title(result.pages),
-                                         find_authors(result.pages),
-                                         find_abstract(result.pages)), target)
+    title, content_title = find_title(result.pages)
+    authors = find_authors(result.pages, content_title)
+    abstract = find_abstract(result.pages)
+    restitution.run(TextProcessingResult(result.filename, title, authors, abstract), target)
 
 
 def find_title(pages):
@@ -27,59 +28,61 @@ def find_title(pages):
         return "N/A"
     title = top_content(largest_contents(pages[0].contents_higher(), TextAlignment.HORIZONTAL))
     if title is None:
-        return "N/A"
-    return title.string.replace("\n", " ") + "\n"
+        return "N/A", None
+    return title.string.replace("\n", " ") + "\n", title
 
 
-def find_authors(pages):
+def find_authors(pages, title):
     """
     Return a string list of authors
 
+    :param title:
     :param pages:
     :return:
     """
     authors = []
+    # liste de secours avec une moins bonne précision
+    authors_assistance = []
     if len(pages) == 0:
         return authors
     contents = pages[0].contents_higher()
+    if title is not None:
+        contents = under_contents(contents, title)
     nlp = spacy.load("en_core_web_sm")
     for content in contents:
         # on analyse ligne par ligne chaque content
+        max_nb_names_in_line = None
         for line in content.string.split("\n"):
-            clear_line = clear_beginning_line(line)
-            ln_words = len(clear_line)
+            clear_line = hard_clear_line(line).strip()
+            words = [word for word in clear_line.split(" ") if word != ""]
+            # si le nombre de mots en majuscule est supérieur à 50%, ça vaut le coup de regarder le content
+            percent = percent_proper_names(words)
+            if percent < 0.5:
+                break
             doc = nlp(clear_line)
             # on détecte les noms
             names = [ent.text.replace("\\", "").replace("∗", "").strip() for ent in doc.ents if ent.label_ == 'PERSON'
                      and "laborato" not in ent.text.lower() and "universit" not in ent.text.lower()]
-            ln_name_words = 0
-            for name in names:
-                ln_name_words += len(name)
-            print("words : ", ln_words, " names : ", ln_name_words, " ratio : ", ln_words / 4 * 3)
-            #print(ln_words / 4 * 3 < ln_name_words)
-            print(names)
-            # si 70% des mots sont des noms, alors on estime qu'on a tout détecté dans la ligne
-            if ln_words / 10 * 7 < ln_name_words:
-                authors += names
-            # si 40% des mots ne sont des noms, on estime qu'on a une liste de noms
-            elif ln_words / 10 * 4 < ln_name_words:
-                for name in clear_line.split(","):
-                    authors.append(name.replace("and", "").replace("\\", "").replace("∗", "").strip())
-            # si moins de 20% des mots sont des noms, on ignore le content
-            elif ln_words / 10 * 2 > ln_name_words:
-                break
-            # si la ligne ne commence pas par un des noms détecter, on ignore le content
+            # si au moins un nom a été détecté, on ajoute toute la ligne
+            if len(names) > 0 and (max_nb_names_in_line is None or len(words) < max_nb_names_in_line + 3):
+                authors.append(clear_line)
+                if max_nb_names_in_line is None:
+                    max_nb_names_in_line = len(words)
+                else:
+                    max(max_nb_names_in_line, len(words))
+            # si rien n'a été détecté comme nom, mais que 90% des mots sont en majuscule, on prend la ligne en secours
+            elif percent > 0.9 and (max_nb_names_in_line is None or len(words) < max_nb_names_in_line + 3):
+                authors_assistance.append(clear_line)
+                if max_nb_names_in_line is None:
+                    max_nb_names_in_line = len(words)
+                else:
+                    max(max_nb_names_in_line, len(words))
+            # sinon on ignore le content
             else:
-                ignore = True
-                for name in names:
-                    if clear_line.startswith(name):
-                        ignore = False
-                        break
-                if ignore:
-                    break
-                # on ajoute les noms détectés
-                for name in names:
-                    authors += name.split("  ")
+                break
+    # si on n'a aucun auteur, on retourne la liste de secours
+    if not authors:
+        return authors_assistance
     return authors
 
 
