@@ -62,9 +62,7 @@ def find_authors(pages, title):
                 break
             doc = nlp(clear_line)
             # on détecte les noms
-            names = [ent.text.replace("\\", "").replace("∗", "").strip() for ent in doc.ents if ent.label_ == 'PERSON'
-                     and "laborato" not in ent.text.lower() and "universit" not in ent.text.lower()
-                     and "partment" not in ent.text.lower() and "institue" not in ent.text.lower()]
+            names = [ent.text.strip() for ent in doc.ents if ent.label_ == 'PERSON']
             # si la ligne contient un mot clef, elle est instantanément ignorée
             if ("laborato" in lower_clear_line or "universit" in lower_clear_line
                     or "department" in lower_clear_line or "département" in lower_clear_line
@@ -78,7 +76,7 @@ def find_authors(pages, title):
                 else:
                     max(max_nb_names_in_line, len(words))
             # si rien n'a été détecté comme nom, mais que 90% des mots sont en majuscule, on prend la ligne en secours
-            elif percent > 0.9 and (max_nb_names_in_line is None or len(words) < max_nb_names_in_line + 3):
+            elif percent > 0.9 and len(words) > 1 and (max_nb_names_in_line is None or len(words) < max_nb_names_in_line + 3):
                 authors_assistance.append(clear_line)
                 if max_nb_names_in_line is None:
                     max_nb_names_in_line = len(words)
