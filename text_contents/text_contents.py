@@ -283,7 +283,8 @@ class TextContentResult:
         #    f"is_nearV: fontS={self_font_size}, otherFS={other_font_size}, dv={vd}")
 
         words = self._string.split(" ")
-        if words[-1].endswith("-"):
+        last = words[-1]
+        if last.endswith("-") or last.endswith("- ") or last.endswith("-\n"):
             reconstituted = words[-1][:-1] + other.string.split(" ")[0]
             if TextContentResult._check_word(reconstituted):
                 return True
@@ -311,7 +312,7 @@ class TextContentResult:
         other_words = other.string.split(" ")
         if words[-1].endswith("-\n") or words[-1].endswith("- ") or words[-1].endswith("-"):
             reconstituted = words[-1][:-1] + other_words[0]
-            print("RECONSTI", reconstituted)
+            #print("RECONSTI", reconstituted)
             if TextContentResult._check_word(reconstituted):
                 words[-1] = reconstituted
                 other_words.pop(0)
@@ -328,7 +329,11 @@ class TextContentResult:
         )
 
     def reconstitute_words(self):
-        self._string = self.string.replace("- ", "-")
+        self._string = self.string.replace("- ", "-")\
+            .replace("-\n", "-").replace(":", " :")\
+            .replace(".", " .").replace("!", " !")\
+            .replace("?", " ?")
+
         words = self.string.split(" ")
 
         for i in range(len(words)):
@@ -342,7 +347,9 @@ class TextContentResult:
                     print("    ok")
                 print("")
 
-        self._string = " ".join(words)
+        self._string = " ".join(words).replace(" :", ":")\
+            .replace(" .", ".").replace(" !", "!")\
+            .replace(" ?", "?")
 
 
 @unique

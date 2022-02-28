@@ -14,6 +14,7 @@ def run(extraction_result, target):
 
     for p in pages:
         p.merge_all()
+        p.process_accents()
 
     print("###########################################################")
     print("FIN PREPROC")
