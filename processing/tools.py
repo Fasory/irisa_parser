@@ -94,7 +94,8 @@ def clear_beginning_line(line):
 
 
 def hard_clear_line(line):
-    return "".join(re.findall(r'[A-Za-zÀ-ÿ0-9 .-]+', line))
+    # old regex : r'[A-Za-zÀ-ÿ0-9 .-]+'
+    return "".join(re.findall(r'^[ ]*[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ.-]*|[ ]+[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ.-]*', line))
 
 
 def percent_proper_names(words):
