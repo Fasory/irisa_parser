@@ -68,6 +68,10 @@ def controler():
         shutil.rmtree(OUTPUT_DIR)
 
     for path in PDFPath:
+        # DEBUG ############
+        # if not "METICS" in path:
+        #    continue
+        ####################
         print("Convert file " + path + "...")
         extraction.run(path, OUTPUT_DIR)
 
