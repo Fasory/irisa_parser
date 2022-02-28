@@ -1,6 +1,7 @@
 """
 Utilities of processing step
 """
+import re
 
 
 def largest_contents(contents, alignment=None):
@@ -82,11 +83,31 @@ def rm_multiple_spaces(string):
 
 
 def clear_beginning_line(line):
-    words = line.split(" ")
+    words = [word for word in line.split(" ") if word != ""]
     checkpoint = 0
     for word in words:
-        if len(word) > 0 and word[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        if word[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
             return " ".join(words[checkpoint:])
         else:
             checkpoint += 1
     return ""
+
+
+def hard_clear_line(line):
+    return "".join(re.findall(r'[A-Za-zÀ-ÿ0-9 .-]+', line))
+
+
+def percent_proper_names(words):
+    if not words:
+        return 0
+    proper_name = 0
+    ref = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    for word in words:
+        if len(word) > 1 and word[0] in ref:
+            proper_name += 1
+    return proper_name / len(words)
+
+
+def under_contents(contents, reference):
+    return [content for content in contents if min(reference.position[1], reference.position[3]) >
+            max(content.position[1], content.position[3])]
