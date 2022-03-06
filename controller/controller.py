@@ -10,6 +10,7 @@ Le controleur permet de vérifier les entrées du programme par :
 """
 import shutil
 from os import listdir
+from .FinalStat import FinalStat
 
 import extraction
 import os
@@ -26,40 +27,20 @@ def run():
 
 def controler():
     # On vérifie qu'il n'y a qu'un seul et unique argument
-    if len(sys.argv) != 2:
-        errorUsage()
-    i = 1
-    options = []
-    var = sys.argv[i]
+
 
     # Gestion des options
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t')
-    parser.add_argument('-x', action='store_true')
-
+    parser.add_argument('-t', "--text", action='store_true', help="select plain text result format")
+    parser.add_argument('-x', "--xml", action='store_true', help="select xml result format")
+    parser.add_argument('input', help="the path of the input folder containing the pdf files")
     store = parser.parse_args()
-    print(    store.__dict__)
 
+    finalStat = FinalStat()
+    finalStat.addOption("xml", store.__dict__.get("xml"))
+    finalStat.addOption("text", store.__dict__.get("text"))
 
-    """
-    while (var.startswith('-')):
-        options.append(var)
-        i += 1
-        var = sys.argv[i]
-
-    if len(options) == 0:
-        var = sys.argv[i + 1]
-
-    if not var.count('/'):
-        errorUsage()
-
-    if (options.count()):
-        while options.count() != 0:
-            currentOption = options.pop()
-            if currentOption == "-h" or currentOption == "--help":
-                print("test")  # Faire un message pour les options possibles
-    """
-    pathDirectory = var
+    pathDirectory = store.__dict__.get("input")
 
     # On vérifie si le répertoire entré existe
     if os.path.exists(pathDirectory) != True:
