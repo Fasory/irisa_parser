@@ -12,18 +12,20 @@ class TextProcessingResult:
     data needed to write the output text file
     """
 
-    def __init__(self, filename, title, authors, abstract):
+    def __init__(self, filename, title, authors, abstract, references):
         """
         Create TextProcessingResult with these 4 pieces of information:
             - PDF file name
             - the title
             - the authors
             - the abstract (if there is one)
+            - the references (if there is one)
         """
         self._original_file_name = filename
         self._title = title
         self._authors = authors
         self._abstract = abstract
+        self._references = references
 
     @property
     def original_file_name(self):
@@ -44,3 +46,8 @@ class TextProcessingResult:
     def abstract(self):
         """Get the abstract"""
         return self._abstract
+
+    @property
+    def references(self):
+        """Get the references"""
+        return self._references

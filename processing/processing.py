@@ -14,7 +14,8 @@ def run(result, target):
     title, content_title = find_title(result.pages)
     authors = find_authors(result.pages, content_title)
     abstract = find_abstract(result.pages)
-    restitution.run(TextProcessingResult(result.filename, title, authors, abstract), target)
+    references = find_references(result.pages)
+    restitution.run(TextProcessingResult(result.filename, title, authors, abstract, references), target)
 
 
 def find_title(pages):
@@ -76,7 +77,8 @@ def find_authors(pages, title):
                 else:
                     max(max_nb_names_in_line, len(words))
             # si rien n'a été détecté comme nom, mais que 90% des mots sont en majuscule, on prend la ligne en secours
-            elif percent > 0.9 and len(words) > 1 and (max_nb_names_in_line is None or len(words) < max_nb_names_in_line + 3):
+            elif percent > 0.9 and len(words) > 1 and (
+                    max_nb_names_in_line is None or len(words) < max_nb_names_in_line + 3):
                 authors_assistance.append(clear_line)
                 if max_nb_names_in_line is None:
                     max_nb_names_in_line = len(words)
@@ -102,7 +104,7 @@ def find_abstract(pages):
         return "N/A"
     for content in pages[0].contents:
         # filtre les contenus uniquement horizontaux
-        if content.alignment is TextAlignment.HORIZONTAL:
+        if content.alignment is TextAlignment.HORIZONTAL or content.alignment is None:
             # recherche basée sur le mot "abstract"
             if "abstract" in content.string[:15].lower():
                 # cas où le titre de la section "Abstract" et le paragraphe sont dans le même content
@@ -120,3 +122,19 @@ def find_abstract(pages):
                   ("present" in content.string[12:75].lower() or "introduce" in content.string[12:75].lower())):
                 return content.string.replace("\n", " ") + "\n"
     return "N/A"
+
+
+def find_references(pages):
+    # Step 1, trouver la séction "References"
+    target = None
+    for index in range(len(pages) - 1, -1, -1):
+        for content in pages[index].contents:
+            if "reference" in content.string[:15].lower():
+                target = index
+                print(content.string)
+                break
+        if target is not None:
+            break
+    # Step 2, extraire les références sur la page ciblé ainsi que les suivantes
+    if target is None:
+        return "N/A"
