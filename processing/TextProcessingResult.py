@@ -51,3 +51,24 @@ class TextProcessingResult:
     def references(self):
         """Get the references"""
         return self._references
+
+
+class Author:
+
+    def __init__(self, name, mail=None):
+        self._name = name
+        self._mail = mail
+
+    @property
+    def name(self):
+        """Get the name"""
+        return self._name
+
+    @property
+    def mail(self):
+        """Get the mail"""
+        return self._mail
+
+    @name.setter
+    def name(self, value):
+        self._mail = value
