@@ -5,21 +5,25 @@ import os
 import sys
 
 
-def run(processingResult, OUTPUT_DIR):
-    restitution(processingResult, OUTPUT_DIR)
+def run(processingResult, target):
+    restitution(processingResult, target)
 
 
-def restitution(processingResult, OUTPUT_DIR):
+def restitution(processingResult, target):
     file_name = processingResult.original_file_name.replace(".pdf", ".txt")
 
-    file_path = os.path.join(OUTPUT_DIR, file_name)
+    file_path = os.path.join(target._output, file_name)
     if os.path.exists(file_path):
         os.remove(file_path)
 
-    if not os.path.exists(OUTPUT_DIR):
-        os.mkdir(OUTPUT_DIR)
+    if not os.path.exists(target._output):
+        os.mkdir(target._output)
+
+    if(target._optionsList["text"]) :
+        restitutionText()
 
     with open(file_path, 'w', encoding='utf-8') as file:
+
         file.write("Fichier original : ")
         file.write(processingResult.original_file_name + "\n")
 
@@ -35,3 +39,10 @@ def restitution(processingResult, OUTPUT_DIR):
 
         file.write("Résumé : ")
         file.write(processingResult.abstract)
+
+def restitutionText() :
+    return None
+
+
+def restitutionXML() :
+    return None

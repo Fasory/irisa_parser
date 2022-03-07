@@ -28,17 +28,12 @@ def run():
 def controler():
     # On vérifie qu'il n'y a qu'un seul et unique argument
 
-
     # Gestion des options
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', "--text", action='store_true', help="select plain text result format")
     parser.add_argument('-x', "--xml", action='store_true', help="select xml result format")
     parser.add_argument('input', help="the path of the input folder containing the pdf files")
     store = parser.parse_args()
-
-    finalStat = FinalStat()
-    finalStat.addOption("xml", store.__dict__.get("xml"))
-    finalStat.addOption("text", store.__dict__.get("text"))
 
     pathDirectory = store.__dict__.get("input")
 
@@ -48,6 +43,10 @@ def controler():
     if not os.access(pathDirectory, os.F_OK | os.R_OK | os.W_OK):
         sys.exit("error -> you do not have write AND read permissions")
 
+    final_stat = FinalStat(pathDirectory, os.path.join(pathDirectory, "out"))
+    final_stat.addOption("xml", store.__dict__.get("xml"))
+    final_stat.addOption("text", store.__dict__.get("text"))
+
     PDFPath = []
 
     # On vérifie si le fichier a bien les droits de lecture ET d'écriture
@@ -56,10 +55,9 @@ def controler():
         if os.access(os.path.join(pathDirectory, file), os.F_OK | os.R_OK | os.W_OK) and file[-4:] == ".pdf":
             PDFPath.append(os.path.join(pathDirectory, file))
 
-    OUTPUT_DIR = os.path.join(pathDirectory, "out")
     # Remove du dossier et son contenu
-    if (os.path.exists(OUTPUT_DIR)):
-        shutil.rmtree(OUTPUT_DIR)
+    if (os.path.exists(final_stat._output)):
+        shutil.rmtree(final_stat._output)
 
     # Conversion en txt
     for path in PDFPath:
@@ -68,11 +66,14 @@ def controler():
         #    continue
         ####################
         print("Convert file " + path + "...")
-        extraction.run(path, OUTPUT_DIR)
+        extraction.run(path, final_stat)
+
 
 """
 Fonction qui détermine un affiche d'erreur de commande
 """
+
+
 def errorUsage():
     print("Usage: irisa_parser.py <options> <inputDirectory>")
     print(exit)

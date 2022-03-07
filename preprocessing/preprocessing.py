@@ -22,4 +22,4 @@ def run(extraction_result, target):
     #    for c in p.contents:
     #        print("CONTENT\n", c)
 
-    processing.run(TextPreprocessingResult(filename, pages), target)
+    processing.run(TextPreprocessingResult(filename, pages), target._output)

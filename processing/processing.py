@@ -14,10 +14,8 @@ def run(result, target):
     title, content_title = find_title(result.pages)
     authors = find_authors(result.pages, content_title)
     abstract = find_abstract(result.pages)
-
     references = find_references(result.pages)
-    restitution.run(TextProcessingResult(result.filename,
-                                         title, authors, abstract, references), target)
+    restitution.run(TextProcessingResult(result.filename, title, authors, abstract, references), target._output)
 
 
 def find_title(pages):
@@ -29,8 +27,7 @@ def find_title(pages):
     """
     if len(pages) == 0:
         return "N/A"
-    title = top_content(largest_contents(
-        pages[0].contents_higher(), TextAlignment.HORIZONTAL))
+    title = top_content(largest_contents(pages[0].contents_higher(), TextAlignment.HORIZONTAL))
     if title is None:
         return "N/A", None
     return title.string.replace("\n", " ") + "\n", title
@@ -66,8 +63,7 @@ def find_authors(pages, title):
                 break
             doc = nlp(clear_line)
             # on détecte les noms
-            names = [ent.text.strip()
-                     for ent in doc.ents if ent.label_ == 'PERSON']
+            names = [ent.text.strip() for ent in doc.ents if ent.label_ == 'PERSON']
             # si la ligne contient un mot clef, elle est instantanément ignorée
             if ("laborato" in lower_clear_line or "universit" in lower_clear_line
                     or "department" in lower_clear_line or "département" in lower_clear_line
@@ -104,7 +100,6 @@ def find_abstract(pages):
     :param pages:
     :return:
     """
-    print("\n\n==========\n\nfind abstract")
     if len(pages) == 0:
         return "N/A"
     for content in pages[0].contents:
@@ -112,14 +107,12 @@ def find_abstract(pages):
         if content.alignment is TextAlignment.HORIZONTAL or content.alignment is None:
             # recherche basée sur le mot "abstract"
             if "abstract" in content.string[:15].lower():
-                print("there is abstract")
                 # cas où le titre de la section "Abstract" et le paragraphe sont dans le même content
                 if len(content.string) > 15:
                     return content.string.replace("\n", " ") + "\n"
                 # cas où le titre de la section "Abstract" et le paragraphe sont dans deux contents différents
                 else:
-                    abstract = closer_content(
-                        pages[0].contents, content).string
+                    abstract = closer_content(pages[0].contents, content).string
                     if abstract is None:
                         return "N/A"
                     else:
@@ -128,7 +121,6 @@ def find_abstract(pages):
             elif ("this article" in rm_multiple_spaces(content.string[:75]).lower() and
                   ("present" in content.string[12:75].lower() or "introduce" in content.string[12:75].lower())):
                 return content.string.replace("\n", " ") + "\n"
-
     return "N/A"
 
 
