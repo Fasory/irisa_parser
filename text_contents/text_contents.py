@@ -160,7 +160,10 @@ class TextContentResult:
 
         #print(self._string, self._position)
 
+        lines_count = 0
         for line in elt:
+            lines_count += 1
+
             # define alignment
             if isinstance(line, LTTextLineHorizontal):
                 if self._alignment is None:
@@ -189,6 +192,10 @@ class TextContentResult:
                             self._fonts[char.fontname] = 0
                         self._fonts[char.fontname] += 1
 
+        char_height = self.major_font_size()
+        self._line_spacing = (self.height - lines_count *
+                              char_height) / (lines_count)
+
     def __str__(self):
         return self._string
 
@@ -204,6 +211,10 @@ class TextContentResult:
     @property
     def container(self):
         return self._container
+
+    @property
+    def height(self):
+        return self._container.height
 
     @property
     def string(self):
@@ -236,6 +247,10 @@ class TextContentResult:
     def major_font_size(self):
         return max(self._font_sizes, key=self._font_sizes.get)
 
+    def starts_with_title(self):
+        first_line = self._string.splitlines()[0]
+        return first_line[0].isnumeric() and ("introduction") in first_line[1:].lower()
+
     def process_accents(self):
         self._string = self._string.replace("´A", "Á").replace("¨A", "Ä").replace("`A", "À").replace("ˆA", "Â")\
             .replace("´a", "á").replace("¨a", "ä").replace("`a", "à").replace("ˆa", "â").replace("´E", "É")\
@@ -266,12 +281,17 @@ class TextContentResult:
         # Si c'est sur une seule ligne
         if self_h == other_h and self_h == self_font_size and self_font_size == other_font_size:
             # Si dh < char_margin
-            if hd < 100:  # char_margin
+            if hd < 10:  # char_margin
                 return True
 
         return False
 
     def is_near_vertical(self, other):
+        # Doivent être l'un par-dessus l'autre
+        hd = self.hdistance(other)
+        if hd > 0:
+            return False
+
         vd = self.vdistance(other)
 
         self_font_size = self.major_font_size()
@@ -280,7 +300,11 @@ class TextContentResult:
         self_font = self.major_font()
         other_font = other.major_font()
         # print(
-        #    f"is_nearV: fontS={self_font_size}, otherFS={other_font_size}, dv={vd}")
+        #    f"is_nearV: fontS={self_font_size}, otherFS={other_font_size}, selfF={self_font}, otherF={other_font}, dv={vd}")
+
+        # Si titre après => non
+        if other.starts_with_title():
+            return False
 
         words = self._string.split(" ")
         last = words[-1]
@@ -289,7 +313,7 @@ class TextContentResult:
             if TextContentResult._check_word(reconstituted):
                 return True
 
-        if vd < 60 and self_font_size == other_font_size and self_font.lower() == other_font.lower():
+        if vd < self._line_spacing and self_font_size == other_font_size and self_font.lower() == other_font.lower():
             return True
 
         return False
@@ -319,7 +343,7 @@ class TextContentResult:
                 self._string = " ".join(words)
                 other._string = " ".join(other_words)
 
-        self._string += other.string
+        self._string += "\n" + other.string
 
         self._position = (
             self._position[0],

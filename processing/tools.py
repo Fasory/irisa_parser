@@ -61,7 +61,8 @@ def closer_content(contents, target):
     :return:
     """
     closer = None
-    x, y = target.position[0], target.position[3]
+    x, y = min(target.position[0], target.position[2]), min(target.position[1], target.position[3])
+
     for content in contents:
         if ((content.position[0] <= x <= content.position[2] or content.position[2] <= x <= content.position[0]) and
                 max(content.position[1], content.position[3]) < y):
