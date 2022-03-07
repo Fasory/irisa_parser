@@ -16,19 +16,22 @@ def restitution(processingResult, target):
     if os.path.exists(file_path):
         os.remove(file_path)
 
-    if not os.path.exists(target._output):
-        os.mkdir(target._output)
-
-    if(target._optionsList["text"]) :
-        restitutionText()
-
     with open(file_path, 'w', encoding='utf-8') as file:
+        if not os.path.exists(target._output):
+            os.mkdir(target._output)
 
-        file.write("Fichier original : ")
-        file.write(processingResult.original_file_name + "\n")
+        if (target._optionsList["text"]):
+            restitutionText(file, processingResult)
 
-        file.write("Titre : ")
-        file.write(processingResult.title)
+        if (target._optionsList["xml"]):
+            restitutionXML(file, processingResult)
+
+
+
+def restitutionText(file, processingResult):
+        file.write("Fichier original : " + processingResult.original_file_name + "\n")
+
+        file.write("Titre : " + processingResult.title)
 
         file.write("Auteurs : ")
         if len(processingResult.authors) > 0:
@@ -40,9 +43,13 @@ def restitution(processingResult, target):
         file.write("Résumé : ")
         file.write(processingResult.abstract)
 
-def restitutionText() :
-    return None
 
+def restitutionXML(file, processingResult):
+    addOpenBalise(file, "article")
+    file.write()
 
-def restitutionXML() :
-    return None
+def addOpenBalise(file, baliseName) :
+    file.write("<" + baliseName + ">")
+
+def addCloseBalise(file, baliseName):
+    file.write("</" + baliseName + ">")

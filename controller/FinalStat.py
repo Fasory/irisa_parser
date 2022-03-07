@@ -21,9 +21,9 @@ class FinalStat:
         return self._options
 
     @property
-    def _output(self):
+    def output(self):
         return self._output
 
     @property
-    def _input(self):
+    def input(self):
         return self._input

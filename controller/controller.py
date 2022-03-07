@@ -56,8 +56,8 @@ def controler():
             PDFPath.append(os.path.join(pathDirectory, file))
 
     # Remove du dossier et son contenu
-    if (os.path.exists(final_stat._output)):
-        shutil.rmtree(final_stat._output)
+    if (os.path.exists(final_stat.output)):
+        shutil.rmtree(final_stat.output)
 
     # Conversion en txt
     for path in PDFPath:
