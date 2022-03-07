@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine
+from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine, LTAnno
 
 from text_contents.EnglishVocab import EnglishVocab
 
@@ -121,10 +121,10 @@ class TextPageResult:
             j = i
 
             while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
-                #print("------MERGE V----")
-                # print(merged.string,
-                #      "*******\n", self._contents[j + 1].string)
-                # print("================")
+                print("------MERGE V----")
+                print(merged.string,
+                      "*******\n", self._contents[j + 1].string)
+                print("================")
 
                 next = self._contents[j + 1]
                 merged.merge_vertical(next)
@@ -160,9 +160,12 @@ class TextContentResult:
 
         #print(self._string, self._position)
 
+        print("========")
         lines_count = 0
         for line in elt:
-            lines_count += 1
+            print(line)
+            if not isinstance(line, LTAnno):
+                lines_count += 1
 
             # define alignment
             if isinstance(line, LTTextLineHorizontal):
@@ -191,10 +194,14 @@ class TextContentResult:
                         if char.fontname not in self._fonts.keys():
                             self._fonts[char.fontname] = 0
                         self._fonts[char.fontname] += 1
+        print("========")
 
         char_height = self.major_font_size()
         self._line_spacing = (self.height - lines_count *
                               char_height) / (lines_count)
+        print("HEIGHT: ", self.height)
+        print("CHAR_HEIGHT: ", char_height)
+        print("LINES * CHAR_HEIGHT: ", lines_count * char_height)
 
     def __str__(self):
         return self._string
@@ -281,16 +288,13 @@ class TextContentResult:
         # Si c'est sur une seule ligne
         if self_h == other_h and self_h == self_font_size and self_font_size == other_font_size:
             # Si dh < char_margin
-            if hd < 10:  # char_margin
+            if hd < 100:  # char_margin
                 return True
 
         return False
 
     def is_near_vertical(self, other):
-        # Doivent être l'un par-dessus l'autre
         hd = self.hdistance(other)
-        if hd > 0:
-            return False
 
         vd = self.vdistance(other)
 
@@ -299,8 +303,11 @@ class TextContentResult:
 
         self_font = self.major_font()
         other_font = other.major_font()
-        # print(
-        #    f"is_nearV: fontS={self_font_size}, otherFS={other_font_size}, selfF={self_font}, otherF={other_font}, dv={vd}")
+        print(f"---\n{self._string}\n{other.string}\nfontS={self_font_size}, otherFS={other_font_size}, selfF={self_font}, otherF={other_font}, dv={vd}, spacing={self._line_spacing}, dh={hd}")
+
+        # Doivent être l'un par-dessus l'autre
+        if hd > 1:
+            return False
 
         # Si titre après => non
         if other.starts_with_title():
@@ -313,8 +320,11 @@ class TextContentResult:
             if TextContentResult._check_word(reconstituted):
                 return True
 
-        if vd < self._line_spacing and self_font_size == other_font_size and self_font.lower() == other_font.lower():
-            return True
+        # Même police
+        if self_font_size == other_font_size and self_font.lower() == other_font.lower():
+            # Espace inférieur à l'interligne, OU à la taille d'un caractère
+            if vd < self.major_font_size() or vd < self._line_spacing:
+                return True
 
         return False
 
