@@ -93,6 +93,8 @@ class TextPageResult:
         i = 0
         while i < len(self._contents):
             merged = self._contents[i]
+            first_pos = merged.position
+            last_pos = first_pos
             j = i
 
             while j + 1 < len(self._contents) and self._contents[j].is_near_horizontal(self._contents[j + 1]):
@@ -103,11 +105,19 @@ class TextPageResult:
 
                 next = self._contents[j + 1]
                 merged.merge_horizontal(next)
+                last_pos = next.position
 
                 j += 1
 
+            merged.position = (
+                first_pos[0],
+                first_pos[1],
+                last_pos[2],
+                last_pos[3]
+            )
+
             new_contents.append(merged)
-            # print(new_contents)
+
             i = j + 1
 
         self._contents = new_contents
@@ -118,6 +128,8 @@ class TextPageResult:
         i = 0
         while i < len(self._contents):
             merged = self._contents[i]
+            first_pos = merged.position
+            last_pos = first_pos
             j = i
 
             while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
@@ -128,11 +140,19 @@ class TextPageResult:
 
                 next = self._contents[j + 1]
                 merged.merge_vertical(next)
+                last_pos = next.position
 
                 j += 1
 
+            merged.position = (
+                last_pos[0],
+                last_pos[1],
+                first_pos[2],
+                first_pos[3]
+            )
+
             new_contents.append(merged)
-            # print(new_contents)
+
             i = j + 1
 
         self._contents = new_contents
@@ -226,6 +246,11 @@ class TextContentResult:
     def position(self):
         """ Get position of content """
         return self._position
+
+    @position.setter
+    def position(self, pos):
+        """Change the position of the content"""
+        self._position = pos
 
     @property
     def font_sizes(self):
@@ -348,13 +373,6 @@ class TextContentResult:
                 other._string = " ".join(other_words)
 
         self._string += "\n" + other.string
-
-        self._position = (
-            self._position[0],
-            self._position[1],
-            other.position[2],
-            other.position[3]
-        )
 
     def reconstitute_words(self):
         self._string = self.string.replace("- ", "-")\
