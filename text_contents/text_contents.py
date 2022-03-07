@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine
+from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine, LTAnno
 
 from text_contents.EnglishVocab import EnglishVocab
 
@@ -93,6 +93,8 @@ class TextPageResult:
         i = 0
         while i < len(self._contents):
             merged = self._contents[i]
+            first_pos = merged.position
+            last_pos = first_pos
             j = i
 
             while j + 1 < len(self._contents) and self._contents[j].is_near_horizontal(self._contents[j + 1]):
@@ -103,11 +105,19 @@ class TextPageResult:
 
                 next = self._contents[j + 1]
                 merged.merge_horizontal(next)
+                last_pos = next.position
 
                 j += 1
 
+            merged.position = (
+                first_pos[0],
+                first_pos[1],
+                last_pos[2],
+                last_pos[3]
+            )
+
             new_contents.append(merged)
-            # print(new_contents)
+
             i = j + 1
 
         self._contents = new_contents
@@ -118,6 +128,8 @@ class TextPageResult:
         i = 0
         while i < len(self._contents):
             merged = self._contents[i]
+            first_pos = merged.position
+            last_pos = first_pos
             j = i
 
             while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
@@ -128,11 +140,19 @@ class TextPageResult:
 
                 next = self._contents[j + 1]
                 merged.merge_vertical(next)
+                last_pos = next.position
 
                 j += 1
 
+            merged.position = (
+                last_pos[0],
+                last_pos[1],
+                first_pos[2],
+                first_pos[3]
+            )
+
             new_contents.append(merged)
-            # print(new_contents)
+
             i = j + 1
 
         self._contents = new_contents
@@ -162,7 +182,8 @@ class TextContentResult:
 
         lines_count = 0
         for line in elt:
-            lines_count += 1
+            if not isinstance(line, LTAnno):
+                lines_count += 1
 
             # define alignment
             if isinstance(line, LTTextLineHorizontal):
@@ -197,7 +218,7 @@ class TextContentResult:
                               char_height) / (lines_count)
 
     def __str__(self):
-        return self._string
+        return f"{self._position}\n'{self._string}'"
 
     def __repr__(self):
         return f"<{self._string}>"
@@ -225,6 +246,11 @@ class TextContentResult:
     def position(self):
         """ Get position of content """
         return self._position
+
+    @position.setter
+    def position(self, pos):
+        """Change the position of the content"""
+        self._position = pos
 
     @property
     def font_sizes(self):
@@ -287,10 +313,7 @@ class TextContentResult:
         return False
 
     def is_near_vertical(self, other):
-        # Doivent être l'un par-dessus l'autre
         hd = self.hdistance(other)
-        if hd > 0:
-            return False
 
         vd = self.vdistance(other)
 
@@ -299,8 +322,11 @@ class TextContentResult:
 
         self_font = self.major_font()
         other_font = other.major_font()
-        # print(
-        #    f"is_nearV: fontS={self_font_size}, otherFS={other_font_size}, selfF={self_font}, otherF={other_font}, dv={vd}")
+        #print(f"---\n{self._string}\n{other.string}\nfontS={self_font_size}, otherFS={other_font_size}, selfF={self_font}, otherF={other_font}, dv={vd}, spacing={self._line_spacing}, dh={hd}")
+
+        # Doivent être l'un par-dessus l'autre
+        if hd > 1:
+            return False
 
         # Si titre après => non
         if other.starts_with_title():
@@ -313,8 +339,11 @@ class TextContentResult:
             if TextContentResult._check_word(reconstituted):
                 return True
 
-        if vd < self._line_spacing and self_font_size == other_font_size and self_font.lower() == other_font.lower():
-            return True
+        # Même police
+        if self_font_size == other_font_size and self_font.lower() == other_font.lower():
+            # Espace inférieur à l'interligne, OU à la taille d'un caractère
+            if vd < self.major_font_size() or vd < self._line_spacing:
+                return True
 
         return False
 
@@ -345,17 +374,11 @@ class TextContentResult:
 
         self._string += "\n" + other.string
 
-        self._position = (
-            self._position[0],
-            self._position[1],
-            other.position[2],
-            other.position[3]
-        )
-
     def reconstitute_words(self):
         self._string = self.string.replace("- ", "-")\
             .replace("-\n", "-").replace(":", " :")\
-            .replace(".", " .").replace("!", " !")\
+            .replace(".", " .").replace(",", " ,")\
+            .replace(";", " ;").replace("!", " !")\
             .replace("?", " ?")
 
         words = self.string.split(" ")
@@ -363,8 +386,7 @@ class TextContentResult:
         for i in range(len(words)):
             w = words[i]
             if "-" in w:
-                new = w.replace("-", "")
-                new = new.replace("\n", "")
+                new = w.replace("-", "").replace("\n", "")
                 #print("RECONSTI for", new, end="")
                 if TextContentResult._check_word(new):
                     words[i] = new
@@ -372,7 +394,8 @@ class TextContentResult:
                 # print("")
 
         self._string = " ".join(words).replace(" :", ":")\
-            .replace(" .", ".").replace(" !", "!")\
+            .replace(" .", ".").replace(" ,", ",")\
+            .replace(" ;", ";").replace(" !", "!")\
             .replace(" ?", "?")
 
 
