@@ -121,10 +121,10 @@ class TextPageResult:
             j = i
 
             while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
-                print("------MERGE V----")
-                print(merged.string,
-                      "*******\n", self._contents[j + 1].string)
-                print("================")
+                #print("------MERGE V----")
+                # print(merged.string,
+                #      "*******\n", self._contents[j + 1].string)
+                # print("================")
 
                 next = self._contents[j + 1]
                 merged.merge_vertical(next)
@@ -160,10 +160,8 @@ class TextContentResult:
 
         #print(self._string, self._position)
 
-        print("========")
         lines_count = 0
         for line in elt:
-            print(line)
             if not isinstance(line, LTAnno):
                 lines_count += 1
 
@@ -194,17 +192,13 @@ class TextContentResult:
                         if char.fontname not in self._fonts.keys():
                             self._fonts[char.fontname] = 0
                         self._fonts[char.fontname] += 1
-        print("========")
 
         char_height = self.major_font_size()
         self._line_spacing = (self.height - lines_count *
                               char_height) / (lines_count)
-        print("HEIGHT: ", self.height)
-        print("CHAR_HEIGHT: ", char_height)
-        print("LINES * CHAR_HEIGHT: ", lines_count * char_height)
 
     def __str__(self):
-        return self._string
+        return f"{self._position}\n'{self._string}'"
 
     def __repr__(self):
         return f"<{self._string}>"
@@ -303,7 +297,7 @@ class TextContentResult:
 
         self_font = self.major_font()
         other_font = other.major_font()
-        print(f"---\n{self._string}\n{other.string}\nfontS={self_font_size}, otherFS={other_font_size}, selfF={self_font}, otherF={other_font}, dv={vd}, spacing={self._line_spacing}, dh={hd}")
+        #print(f"---\n{self._string}\n{other.string}\nfontS={self_font_size}, otherFS={other_font_size}, selfF={self_font}, otherF={other_font}, dv={vd}, spacing={self._line_spacing}, dh={hd}")
 
         # Doivent être l'un par-dessus l'autre
         if hd > 1:
@@ -365,7 +359,8 @@ class TextContentResult:
     def reconstitute_words(self):
         self._string = self.string.replace("- ", "-")\
             .replace("-\n", "-").replace(":", " :")\
-            .replace(".", " .").replace("!", " !")\
+            .replace(".", " .").replace(",", " ,")\
+            .replace(";", " ;").replace("!", " !")\
             .replace("?", " ?")
 
         words = self.string.split(" ")
@@ -373,16 +368,16 @@ class TextContentResult:
         for i in range(len(words)):
             w = words[i]
             if "-" in w:
-                new = w.replace("-", "")
-                new = new.replace("\n", "")
-                #print("RECONSTI for", new, end="")
+                new = w.replace("-", "").replace("\n", "")
+                print("RECONSTI for", new, end="")
                 if TextContentResult._check_word(new):
                     words[i] = new
-                    #print("    ok")
-                # print("")
+                    print("    ok")
+                print("")
 
         self._string = " ".join(words).replace(" :", ":")\
-            .replace(" .", ".").replace(" !", "!")\
+            .replace(" .", ".").replace(" ,", ",")\
+            .replace(" ;", ";").replace(" !", "!")\
             .replace(" ?", "?")
 
 
