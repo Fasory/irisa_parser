@@ -11,9 +11,9 @@ from pdfminer.layout import LAParams, LTTextContainer, LTFigure
 import preprocessing
 from .TextExtractionResult import TextExtractionResult, TextPageResult, TextContentResult
 
-def run(path, target):
+def run(path, final_stat):
     """ Main function of module """
-    preprocessing.run(extraction(path), target._output)
+    preprocessing.run(extraction(path), final_stat)
 
 
 def extraction(path):

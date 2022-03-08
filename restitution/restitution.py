@@ -5,20 +5,21 @@ import os
 import sys
 
 
-def run(processingResult, target):
-    restitution(processingResult, target)
+def run(processingResult, final_stat):
+    restitution(processingResult, final_stat)
 
 
 def restitution(processingResult, target):
+    if not os.path.exists(target.output):
+        os.mkdir(target.output)
+
     file_name = processingResult.original_file_name.replace(".pdf", ".txt")
 
-    file_path = os.path.join(target._output, file_name)
+    file_path = os.path.join(target.output, file_name)
     if os.path.exists(file_path):
         os.remove(file_path)
 
     with open(file_path, 'w', encoding='utf-8') as file:
-        if not os.path.exists(target._output):
-            os.mkdir(target._output)
 
         if (target._optionsList["text"]):
             restitutionText(file, processingResult)

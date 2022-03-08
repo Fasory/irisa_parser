@@ -10,12 +10,12 @@ from processing.tools import largest_contents, top_content, closer_content, rm_m
     hard_clear_line, percent_proper_names, under_contents
 
 
-def run(result, target):
+def run(result, final_stat):
     title, content_title = find_title(result.pages)
     authors = find_authors(result.pages, content_title)
     abstract = find_abstract(result.pages)
     references = find_references(result.pages)
-    restitution.run(TextProcessingResult(result.filename, title, authors, abstract, references), target._output)
+    restitution.run(TextProcessingResult(result.filename, title, authors, abstract, references), final_stat)
 
 
 def find_title(pages):
@@ -131,7 +131,6 @@ def find_references(pages):
         for content in pages[index].contents:
             if "reference" in content.string[:15].lower():
                 target = index
-                print(content.string)
                 break
         if target is not None:
             break
