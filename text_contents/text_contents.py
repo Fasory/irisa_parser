@@ -80,83 +80,6 @@ class TextPageResult:
         for c in self._contents:
             c.process_accents()
 
-    def merge_all(self):
-        self.merge_horizontal()
-        self.merge_vertical()
-
-        for c in self._contents:
-            c.reconstitute_words()
-
-    def merge_horizontal(self):
-        new_contents = []
-
-        i = 0
-        while i < len(self._contents):
-            merged = self._contents[i]
-            first_pos = merged.position
-            last_pos = first_pos
-            j = i
-
-            while j + 1 < len(self._contents) and self._contents[j].is_near_horizontal(self._contents[j + 1]):
-                #print("------MERGE H----")
-                # print(merged.string,
-                #      "*******\n", self._contents[j + 1].string)
-                # print("================")
-
-                next = self._contents[j + 1]
-                merged.merge_horizontal(next)
-                last_pos = next.position
-
-                j += 1
-
-            merged.position = (
-                first_pos[0],
-                first_pos[1],
-                last_pos[2],
-                last_pos[3]
-            )
-
-            new_contents.append(merged)
-
-            i = j + 1
-
-        self._contents = new_contents
-
-    def merge_vertical(self):
-        new_contents = []
-
-        i = 0
-        while i < len(self._contents):
-            merged = self._contents[i]
-            first_pos = merged.position
-            last_pos = first_pos
-            j = i
-
-            while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
-                #print("------MERGE V----")
-                # print(merged.string,
-                #      "*******\n", self._contents[j + 1].string)
-                # print("================")
-
-                next = self._contents[j + 1]
-                merged.merge_vertical(next)
-                last_pos = next.position
-
-                j += 1
-
-            merged.position = (
-                last_pos[0],
-                last_pos[1],
-                first_pos[2],
-                first_pos[3]
-            )
-
-            new_contents.append(merged)
-
-            i = j + 1
-
-        self._contents = new_contents
-
 
 class TextContentResult:
     """
@@ -273,10 +196,6 @@ class TextContentResult:
     def major_font_size(self):
         return max(self._font_sizes, key=self._font_sizes.get)
 
-    def starts_with_title(self):
-        first_line = self._string.splitlines()[0]
-        return first_line[0].isnumeric() and ("introduction") in first_line[1:].lower()
-
     def process_accents(self):
         self._string = self._string.replace("´A", "Á").replace("¨A", "Ä").replace("`A", "À").replace("ˆA", "Â")\
             .replace("´a", "á").replace("¨a", "ä").replace("`a", "à").replace("ˆa", "â").replace("´E", "É")\
@@ -292,111 +211,6 @@ class TextContentResult:
     @staticmethod
     def _check_word(word):
         return EnglishVocab.instance().check_word(word)
-
-    def is_near_horizontal(self, other):
-        hd = self.hdistance(other)
-
-        self_h = self._container.height
-        other_h = other._container.height
-
-        self_font_size = self.major_font_size()
-        other_font_size = other.major_font_size()
-        # print(
-        #    f"is_near: selfH={self_h}, otherH={other_h}, fontS={self_font_size}, otherFS={other_font_size}, dh={hd}")
-
-        # Si c'est sur une seule ligne
-        if self_h == other_h and self_h == self_font_size and self_font_size == other_font_size:
-            # Si dh < char_margin
-            if hd < 10:  # char_margin
-                return True
-
-        return False
-
-    def is_near_vertical(self, other):
-        hd = self.hdistance(other)
-
-        vd = self.vdistance(other)
-
-        self_font_size = self.major_font_size()
-        other_font_size = other.major_font_size()
-
-        self_font = self.major_font()
-        other_font = other.major_font()
-        #print(f"---\n{self._string}\n{other.string}\nfontS={self_font_size}, otherFS={other_font_size}, selfF={self_font}, otherF={other_font}, dv={vd}, spacing={self._line_spacing}, dh={hd}")
-
-        # Doivent être l'un par-dessus l'autre
-        if hd > 1:
-            return False
-
-        # Si titre après => non
-        if other.starts_with_title():
-            return False
-
-        words = self._string.split(" ")
-        last = words[-1]
-        if last.endswith("-") or last.endswith("- ") or last.endswith("-\n"):
-            reconstituted = words[-1][:-1] + other.string.split(" ")[0]
-            if TextContentResult._check_word(reconstituted):
-                return True
-
-        # Même police
-        if self_font_size == other_font_size and self_font.lower() == other_font.lower():
-            # Espace inférieur à l'interligne, OU à la taille d'un caractère
-            if vd < self.major_font_size() or vd < self._line_spacing:
-                return True
-
-        return False
-
-    def merge_horizontal(self, other):
-        self._string = self._string.replace("\n", "")
-        other._string = other.string.replace("\n", "")
-        #print(f"merge fn: '{self._string}' + '{other.string}'")
-
-        self._string += other.string
-        self._position = (
-            self._position[0],
-            self._position[1],
-            other.position[2],
-            other.position[3]
-        )
-
-    def merge_vertical(self, other):
-        words = self._string.split(" ")
-        other_words = other.string.split(" ")
-        if words[-1].endswith("-\n") or words[-1].endswith("- ") or words[-1].endswith("-"):
-            reconstituted = words[-1][:-1] + other_words[0]
-            #print("RECONSTI", reconstituted)
-            if TextContentResult._check_word(reconstituted):
-                words[-1] = reconstituted
-                other_words.pop(0)
-                self._string = " ".join(words)
-                other._string = " ".join(other_words)
-
-        self._string += "\n" + other.string
-
-    def reconstitute_words(self):
-        self._string = self.string.replace("- ", "-")\
-            .replace("-\n", "-").replace(":", " :")\
-            .replace(".", " .").replace(",", " ,")\
-            .replace(";", " ;").replace("!", " !")\
-            .replace("?", " ?")
-
-        words = self.string.split(" ")
-
-        for i in range(len(words)):
-            w = words[i]
-            if "-" in w:
-                new = w.replace("-", "").replace("\n", "")
-                #print("RECONSTI for", new, end="")
-                if TextContentResult._check_word(new):
-                    words[i] = new
-                    #print("    ok")
-                # print("")
-
-        self._string = " ".join(words).replace(" :", ":")\
-            .replace(" .", ".").replace(" ,", ",")\
-            .replace(" ;", ";").replace(" !", "!")\
-            .replace(" ?", "?")
 
 
 @unique
