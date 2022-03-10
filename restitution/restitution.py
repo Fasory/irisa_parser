@@ -36,9 +36,13 @@ def restitutionText(file, processingResult):
 
         file.write("Auteurs : ")
         if len(processingResult.authors) > 0:
-            file.write(processingResult.authors[0])
+            file.write(processingResult.authors[0].name)
+            if processingResult.authors[0].mail != "N/A":
+                file.write(" (" + processingResult.authors[0].mail + ")")
             for author in processingResult.authors[1:]:
-                file.write(", " + author)
+                file.write(", " + author.name)
+                if author.mail != "N/A":
+                    file.write(" (" + author.mail + ")")
         file.write("\n")
 
         file.write("Résumé : ")
