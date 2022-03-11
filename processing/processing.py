@@ -250,3 +250,5 @@ def find_references(pages):
     # Step 2, extraire les références sur la page ciblé ainsi que les suivantes
     if target is None:
         return "N/A"
+    # temp
+    return "N/A"
