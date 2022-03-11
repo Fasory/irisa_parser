@@ -13,20 +13,22 @@ def restitution(processingResult, target):
     if not os.path.exists(target.output):
         os.mkdir(target.output)
 
-    file_name = processingResult.original_file_name.replace(".pdf", ".txt")
+    listExtensions = []
+    getExtensions(target, listExtensions)
 
-    file_path = os.path.join(target.output, file_name)
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    for extension in listExtensions :
+        file_name = processingResult.original_file_name.replace(".pdf", extension)
 
-    with open(file_path, 'w', encoding='utf-8') as file:
+        file_path = os.path.join(target.output, file_name)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
-        if (target._optionsList["text"]):
-            restitutionText(file, processingResult)
+        with open(file_path, 'w', encoding='utf-8') as file:
+            if (extension == ".txt"):
+                restitutionText(file, processingResult)
 
-        if (target._optionsList["xml"]):
-            restitutionXML(file, processingResult)
-
+            if (extension == ".xml"):
+                restitutionXML(file, processingResult)
 
 
 def restitutionText(file, processingResult):
@@ -47,6 +49,10 @@ def restitutionText(file, processingResult):
 
         file.write("Résumé : ")
         file.write(processingResult.abstract)
+        file.write("\n")
+
+        file.write("Références : " + processingResult.references)
+        file.write("\n")
 
 
 def restitutionXML(file, processingResult):
@@ -63,23 +69,30 @@ def restitutionXML(file, processingResult):
     if len(processingResult.authors) > 0:
         file.write("\t<auteurs>\n")
         for author in processingResult.authors:
-            file.write("\t\t<auteur>")
+            file.write("\t\t<auteur>\n")
             file.write("\t\t\t<name>")
             file.write(author.name)
             file.write("</name>\n")
             file.write("\t\t\t<mail>")
             file.write(author.mail)
             file.write("</mail>\n")
-            file.write("\t\t</auteur>")
-        file.write("</auteurs>\n")
+            file.write("\t\t</auteur>\n")
+    file.write("\t</auteurs>\n")
 
     file.write("\t<abstract>")
     file.write(processingResult.abstract)
-    file.write("<abstract>\n")
-    file.write("\t<biblio>\n")
-
-    file.write("\t</biblio>\n")
+    file.write("</abstract>\n")
+    file.write("\t<biblio>")
+    file.write(processingResult.references)
+    file.write("</biblio>\n")
     file.write("</article>\n")
 
 def addTab(file, nb) :
     return None
+
+def getExtensions(target, listExtensions) : 
+    if target._optionsList["text"] :
+        listExtensions.append(".txt")
+    if target._optionsList["xml"] :
+        listExtensions.append(".xml")
+    return listExtensions
