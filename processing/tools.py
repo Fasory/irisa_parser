@@ -256,6 +256,33 @@ def without_accent(word):
 
 
 def column_extraction(references, standard, pages):
+    first_position = standard.position[0]
+    references += " " + string_with_constraints(pages[0].contents, standard, first_position,
+                                                None, standard.fonts,
+                                                round(standard.major_font_size(), 2), 20)
+    # Si la position x du content de référence est inférieur 1/3 de la largeur de la page, alors on doit
+    # récupérer la deuxième colonne à gauche
+    if standard.position[0] < pages[0].width / 3:
+        second_posisition = search_target_x_position(pages[0].contents,
+                                                     first_position + pages[0].width / 2,
+                                                     standard.position[2] - standard.position[0])
+        references += " " + string_with_constraints(pages[0].contents, None, second_posisition,
+                                                    None, standard.fonts,
+                                                    round(standard.major_font_size(), 2), 20)
+    else:
+        second_posisition = search_target_x_position(pages[0].contents,
+                                                     first_position - pages[0].width / 2,
+                                                     standard.position[2] - standard.position[0])
+        first_position, second_posisition = second_posisition, first_position
+    for page in pages[1:]:
+        # Colonne gauche
+        references += " " + string_with_constraints(page.contents, None, first_position,
+                                                    None, standard.fonts,
+                                                    round(standard.major_font_size(), 2), 20)
+        # Colonne droite
+        references += " " + string_with_constraints(page.contents, None, second_posisition,
+                                                    None, standard.fonts,
+                                                    round(standard.major_font_size(), 2), 20)
     return references
 
 
@@ -270,20 +297,12 @@ def default_extraction(references, standard, pages):
     return references
 
 
-def string_with_constraints(contents, under=None, x0=None, x1=None, fonts=None, font_size=None, size=None, debug=False):
+def string_with_constraints(contents, under=None, x0=None, x1=None, fonts=None, font_size=None, size=None):
     string = ""
-    if debug and under is not None:
-        print("target ----------------------------------------------------")
-        print(under.font_sizes, under.fonts)
-        print(under.string)
     for content in contents:
-        if under is None or content.position[1] < under.position[3]:
-            if debug:
-                print("size", (font_size is None or font_size == round(content.major_font_size(), 2)))
-                print(content.font_sizes, content.fonts)
-                print(content.string)
-            if (x0 is None or round(x0, 5)-20 <= round(content.position[0], 5) <= round(x0, 5)+20) and \
-                    (x1 is None or round(x1, 5)-20 <= round(content.position[2], 5) <= round(x1, 5)+20) and \
+        if under is None or content.position[3] < under.position[1]:
+            if (x0 is None or round(x0, 5) - 20 <= round(content.position[0], 5) <= round(x0, 5) + 20) and \
+                    (x1 is None or round(x1, 5) - 20 <= round(content.position[2], 5) <= round(x1, 5) + 20) and \
                     (font_size is None or font_size == round(content.major_font_size(), 2)) and \
                     (size is None or size <= len(content.string)):
                 for font in fonts:
@@ -294,3 +313,13 @@ def string_with_constraints(contents, under=None, x0=None, x1=None, fonts=None, 
                             string += content.string
                         break
     return string
+
+
+def search_target_x_position(contents, target_x, width):
+    target = None
+    for content in contents:
+        if content.position[0] < target_x < content.position[2] and \
+                width - 5 <= content.position[2] - content.position[0] <= width + 5:
+            target = content.position[0]
+            break
+    return target
