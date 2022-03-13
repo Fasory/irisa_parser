@@ -53,19 +53,28 @@ def top_content(contents):
         return top
 
 
-def closer_content(contents, target):
+def closer_content(contents, target, debug=False):
     """
     Searches for the closest content in the same vertical alignment
     under the target
 
     :param contents:
     :param target:
+    :param debug:
     :return:
     """
     closer = None
-    x, y = min(target.position[0], target.position[2]), min(target.position[1], target.position[3])
+    x, y = min(target.position[0], target.position[2]) + abs(target.position[0] - target.position[2]), min(
+        target.position[1], target.position[3])
 
+    if debug:
+        print("target ------------------------------------")
+        print(target.string)
+        print(target.position)
     for content in contents:
+        if debug:
+            print(content.string)
+            print(content.position)
         if ((content.position[0] <= x <= content.position[2] or content.position[2] <= x <= content.position[0]) and
                 max(content.position[1], content.position[3]) < y):
             if closer is None:
@@ -219,11 +228,11 @@ def research_match_by_first_letter(token, targets, dict_tokens):
             for i in range(len(words) - (size - 1)):
                 buffer = ""
                 for j in range(size):
-                    buffer += words[i+j][0]
+                    buffer += words[i + j][0]
                 if buffer == token:
                     words = target.name.split(" ")
-                    result.append(Author(" ".join(words[i:(i+size)]), dict_tokens[token]))
-                    result.append(Author(" ".join(words[:i] + words[(i+size):]), target.mail))
+                    result.append(Author(" ".join(words[i:(i + size)]), dict_tokens[token]))
+                    result.append(Author(" ".join(words[:i] + words[(i + size):]), target.mail))
                     break
     return result
 
@@ -244,3 +253,44 @@ def without_accent(word):
         else:
             new_word += c
     return new_word
+
+
+def column_extraction(references, standard, pages):
+    return references
+
+
+def default_extraction(references, standard, pages):
+    references += " " + string_with_constraints(pages[0].contents, standard, standard.position[0],
+                                                None, standard.fonts,
+                                                round(standard.major_font_size(), 2), 20)
+    for page in pages[1:]:
+        references += " " + string_with_constraints(page.contents, None, standard.position[0],
+                                                    None, standard.fonts,
+                                                    round(standard.major_font_size(), 2), 20)
+    return references
+
+
+def string_with_constraints(contents, under=None, x0=None, x1=None, fonts=None, font_size=None, size=None, debug=False):
+    string = ""
+    if debug and under is not None:
+        print("target ----------------------------------------------------")
+        print(under.font_sizes, under.fonts)
+        print(under.string)
+    for content in contents:
+        if under is None or content.position[1] < under.position[3]:
+            if debug:
+                print("size", (font_size is None or font_size == round(content.major_font_size(), 2)))
+                print(content.font_sizes, content.fonts)
+                print(content.string)
+            if (x0 is None or round(x0, 5)-20 <= round(content.position[0], 5) <= round(x0, 5)+20) and \
+                    (x1 is None or round(x1, 5)-20 <= round(content.position[2], 5) <= round(x1, 5)+20) and \
+                    (font_size is None or font_size == round(content.major_font_size(), 2)) and \
+                    (size is None or size <= len(content.string)):
+                for font in fonts:
+                    if font in content.fonts:
+                        if string:
+                            string += " " + content.string
+                        else:
+                            string += content.string
+                        break
+    return string

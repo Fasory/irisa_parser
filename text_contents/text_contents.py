@@ -173,7 +173,8 @@ class TextContentResult:
                             type(elt).__name__)
         self._container = elt
         self._string = elt.get_text()
-        self._position = elt.bbox
+        self._position = (min(elt.bbox[0], elt.bbox[2]), min(elt.bbox[1], elt.bbox[3]), max(elt.bbox[0], elt.bbox[2]),
+                          max(elt.bbox[1], elt.bbox[3]))
         self._font_sizes = {}
         self._fonts = {}
         self._alignment = None
@@ -287,7 +288,8 @@ class TextContentResult:
             .replace("'o", "ó").replace("¨o", "ö").replace("`o", "ò").replace("ˆo", "ô").replace("'U", "Ú")\
             .replace("¨U", "Ü").replace("`U", "Ù").replace("ˆU", "Û").replace("'u", "ú").replace("¨u", "ü")\
             .replace("`u", "ù").replace("ˆu", "û").replace("'Y", "Ý").replace("¨Y", "Ÿ").replace("`Y", "Ỳ")\
-            .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")
+            .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")\
+            .replace("ˇr", "ř").replace("ˇS", "Š")
 
     @staticmethod
     def _check_word(word):

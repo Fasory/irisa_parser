@@ -16,7 +16,7 @@ def restitution(processingResult, target):
     listExtensions = []
     getExtensions(target, listExtensions)
 
-    for extension in listExtensions :
+    for extension in listExtensions:
         file_name = processingResult.original_file_name.replace(".pdf", extension)
 
         file_path = os.path.join(target.output, file_name)
@@ -32,27 +32,27 @@ def restitution(processingResult, target):
 
 
 def restitutionText(file, processingResult):
-        file.write("Fichier original : " + processingResult.original_file_name + "\n")
+    file.write("Fichier original : " + processingResult.original_file_name + "\n")
 
-        file.write("Titre : " + processingResult.title)
+    file.write("Titre : " + processingResult.title)
 
-        file.write("Auteurs : ")
-        if len(processingResult.authors) > 0:
-            file.write(processingResult.authors[0].name)
-            if processingResult.authors[0].mail != "N/A":
-                file.write(" (" + processingResult.authors[0].mail + ")")
-            for author in processingResult.authors[1:]:
-                file.write(", " + author.name)
-                if author.mail != "N/A":
-                    file.write(" (" + author.mail + ")")
-        file.write("\n")
+    file.write("Auteurs : ")
+    if len(processingResult.authors) > 0:
+        file.write(processingResult.authors[0].name)
+        if processingResult.authors[0].mail != "N/A":
+            file.write(" (" + processingResult.authors[0].mail + ")")
+        for author in processingResult.authors[1:]:
+            file.write(", " + author.name)
+            if author.mail != "N/A":
+                file.write(" (" + author.mail + ")")
+    file.write("\n")
 
-        file.write("Résumé : ")
-        file.write(processingResult.abstract)
-        file.write("\n")
+    file.write("Résumé : ")
+    file.write(processingResult.abstract)
+    file.write("\n")
 
-        file.write("Références : " + processingResult.references)
-        file.write("\n")
+    file.write("Références : " + processingResult.references)
+    file.write("\n")
 
 
 def restitutionXML(file, processingResult):
@@ -87,12 +87,14 @@ def restitutionXML(file, processingResult):
     file.write("</biblio>\n")
     file.write("</article>\n")
 
-def addTab(file, nb) :
+
+def addTab(file, nb):
     return None
 
-def getExtensions(target, listExtensions) : 
-    if target._optionsList["text"] :
+
+def getExtensions(target, listExtensions):
+    if target._optionsList["text"]:
         listExtensions.append(".txt")
-    if target._optionsList["xml"] :
+    if target._optionsList["xml"]:
         listExtensions.append(".xml")
     return listExtensions

@@ -7,7 +7,8 @@ import restitution
 from extraction.TextExtractionResult import TextAlignment
 from .TextProcessingResult import TextProcessingResult, Author
 from processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces, clear_beginning_line, \
-    hard_clear_line, percent_proper_names, under_contents, build_mail, build_real_authors, match, research_match_by_first_letter
+    hard_clear_line, percent_proper_names, under_contents, build_mail, build_real_authors, match, \
+    research_match_by_first_letter, column_extraction, default_extraction
 
 
 def run(result, final_stat):
@@ -238,17 +239,34 @@ def find_abstract(pages):
 
 
 def find_references(pages):
-    # Step 1, trouver la séction "References"
+    # Step 1, trouver la séction "References" sinon on retourne N/A
     target = None
+    section = None
     for index in range(len(pages) - 1, -1, -1):
         for content in pages[index].contents:
-            if "reference" in content.string[:15].lower():
+            if "reference" in content.string[:25].lower():
                 target = index
+                section = content
                 break
         if target is not None:
             break
-    # Step 2, extraire les références sur la page ciblé ainsi que les suivantes
     if target is None:
         return "N/A"
-    # temp
-    return "N/A"
+    # Step 2, on établit un étalon de référence ainsi que leur disposition
+    pos = section.string[:-1].find('\n')
+    # Cas où la première référence se trouve dans le même content que le titre de la section "References"
+    if pos > -1:
+        standard = section
+        references = standard.string[pos+1:]
+    else:
+        standard = closer_content(pages[target].contents, section)
+        if standard is None:
+            return "N/A"
+        references = standard.string
+    # Step 3, extraction
+    # Cas selon une disposition sans colonne
+    if standard.position[0] < pages[target].width / 3 and pages[target].width * 2 / 3 < standard.position[2]:
+        return default_extraction(references, standard, pages[target:]).replace('\n', " ")
+    # Cas selon une disposition avec colonne
+    else:
+        return column_extraction(references, standard, pages[target:]).replace('\n', " ")
