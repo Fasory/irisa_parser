@@ -80,6 +80,12 @@ class TextPageResult:
         for c in self._contents:
             c.process_accents()
 
+    def sort_y(self):
+        self._contents.sort(key=lambda c: c.position[1], reverse=True)
+
+    def merge_horizontal(self):
+        while
+
 
 class TextContentResult:
     """
@@ -196,6 +202,10 @@ class TextContentResult:
     def major_font_size(self):
         return max(self._font_sizes, key=self._font_sizes.get)
 
+    @staticmethod
+    def _check_word(word):
+        return EnglishVocab.instance().check_word(word)
+
     def process_accents(self):
         self._string = self._string.replace("´A", "Á").replace("¨A", "Ä").replace("`A", "À").replace("ˆA", "Â")\
             .replace("´a", "á").replace("¨a", "ä").replace("`a", "à").replace("ˆa", "â").replace("´E", "É")\
@@ -207,10 +217,6 @@ class TextContentResult:
             .replace("¨U", "Ü").replace("`U", "Ù").replace("ˆU", "Û").replace("'u", "ú").replace("¨u", "ü")\
             .replace("`u", "ù").replace("ˆu", "û").replace("'Y", "Ý").replace("¨Y", "Ÿ").replace("`Y", "Ỳ")\
             .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")
-
-    @staticmethod
-    def _check_word(word):
-        return EnglishVocab.instance().check_word(word)
 
 
 @unique
