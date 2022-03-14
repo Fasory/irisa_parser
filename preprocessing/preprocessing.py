@@ -8,7 +8,7 @@ from .TextPreprocessingResult import TextPreprocessingResult
 import processing
 
 
-def run(extraction_result, target):
+def run(extraction_result, final_stat):
     filename = extraction_result.file_name
     pages = extraction_result.pages
 
@@ -22,4 +22,4 @@ def run(extraction_result, target):
     #    for c in p.contents:
     #        print("CONTENT\n", c)
 
-    processing.run(TextPreprocessingResult(filename, pages), target._output)
+    processing.run(TextPreprocessingResult(filename, pages), final_stat)
