@@ -3,7 +3,8 @@ This file is the main file of the restitution module
 """
 import os
 import sys
-
+from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
+from xml.dom import minidom
 
 def run(processingResult, final_stat):
     restitution(processingResult, final_stat)
@@ -13,10 +14,12 @@ def restitution(processingResult, target):
     if not os.path.exists(target.output):
         os.mkdir(target.output)
 
-    listExtensions = []
-    getExtensions(target, listExtensions)
+    listExtensions = target.optionsList
 
     for extension in listExtensions:
+        if(listExtensions[extension] == False) :
+            continue
+
         file_name = processingResult.original_file_name.replace(".pdf", extension)
 
         file_path = os.path.join(target.output, file_name)
@@ -56,45 +59,27 @@ def restitutionText(file, processingResult):
 
 
 def restitutionXML(file, processingResult):
-    file.write("<article>\n")
+    root = Element('article')
+    preamble = SubElement(root, "preambule")
+    preamble.text = "Fichier original : " + processingResult.original_file_name
 
-    file.write("\t<preamble>")
-    file.write("Fichier original : " + processingResult.original_file_name)
-    file.write("</preamble>\n")
-
-    file.write("\t<titre> ")
-    file.write("Titre : " + processingResult.title)
-    file.write("</titre> \n")
+    title = SubElement(root, "titre")
+    title.text = "Titre : " + processingResult.title
 
     if len(processingResult.authors) > 0:
-        file.write("\t<auteurs>\n")
+        authors = SubElement(root, "auteurs")
         for author in processingResult.authors:
-            file.write("\t\t<auteur>\n")
-            file.write("\t\t\t<name>")
-            file.write(author.name)
-            file.write("</name>\n")
-            file.write("\t\t\t<mail>")
-            file.write(author.mail)
-            file.write("</mail>\n")
-            file.write("\t\t</auteur>\n")
-    file.write("\t</auteurs>\n")
+            auth = SubElement(authors, "auteur")
+            name = SubElement(auth, "nom")
+            name.text = author.name
+            mail = SubElement(auth, "mail")
+            mail.text = author.mail
 
-    file.write("\t<abstract>")
-    file.write(processingResult.abstract)
-    file.write("</abstract>\n")
-    file.write("\t<biblio>")
-    file.write(processingResult.references)
-    file.write("</biblio>\n")
-    file.write("</article>\n")
+    abstract = SubElement(root, "abstract")
+    abstract.text = processingResult.abstract
+
+    references = SubElement(root, "references")
+    references.text = processingResult.references
 
 
-def addTab(file, nb):
-    return None
-
-
-def getExtensions(target, listExtensions):
-    if target._optionsList["text"]:
-        listExtensions.append(".txt")
-    if target._optionsList["xml"]:
-        listExtensions.append(".xml")
-    return listExtensions
+    file.write(minidom.parseString(tostring(root)).toprettyxml(indent="  "))

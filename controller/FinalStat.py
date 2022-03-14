@@ -7,13 +7,13 @@ class FinalStat:
         """ Constructor """
         self._output = outdir
         self._input = indir
-        self._options = {"text": False, "xml": False}
+        self._options = {}
 
     def addOption(self, option, value):
         self._options[option] = value
 
     @property
-    def _optionsList(self):
+    def optionsList(self):
         for option in self._options.values():
             if (option):
                 return self._options

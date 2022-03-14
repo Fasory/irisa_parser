@@ -30,22 +30,25 @@ def controler():
 
     # Gestion des options
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', "--text", action='store_true', help="select plain text result format")
-    parser.add_argument('-x', "--xml", action='store_true', help="select xml result format")
+    parser.add_argument('-t', "--text", action='store_true', dest=".txt", help="select plain text result format")
+    parser.add_argument('-x', "--xml", dest=".xml", action='store_true', help="select xml result format")
     parser.add_argument('input', help="the path of the input folder containing the pdf files")
     store = parser.parse_args()
 
-    pathDirectory = store.__dict__.get("input")
+    final_stat = FinalStat(vars(store)["input"], vars(store)["input"] + "/out")
+    for key in vars(store):
+        if(key == "input") :
+            continue
+        final_stat.addOption(key, vars(store)[key])
 
+    pathDirectory = final_stat.input
     # On vérifie si le répertoire entré existe
     if os.path.exists(pathDirectory) != True:
         sys.exit("error -> <pathDirectory> does not exist")
     if not os.access(pathDirectory, os.F_OK | os.R_OK | os.W_OK):
         sys.exit("error -> you do not have write AND read permissions")
 
-    final_stat = FinalStat(pathDirectory, os.path.join(pathDirectory, "out"))
-    final_stat.addOption("xml", store.__dict__.get("xml"))
-    final_stat.addOption("text", store.__dict__.get("text"))
+
 
     PDFPath = []
 
@@ -67,14 +70,3 @@ def controler():
         ####################
         print("Convert file " + path + "...")
         extraction.run(path, final_stat)
-
-
-"""
-Fonction qui détermine un affiche d'erreur de commande
-"""
-
-
-def errorUsage():
-    print("Usage: irisa_parser.py <options> <inputDirectory>")
-    print(exit)
-    exit()
