@@ -13,15 +13,27 @@ Cet outil sera développé en --, la conversion pdf en format texte sera faite �
 ## Procédure d'installastions
 
 ###pdfminer :
-* pip install pdfminer.six
-
+* ```pip install pdfminer.six```
 
 ###spacy :
-* pip install spacy
-* python -m spacy download en_core_web_sm
+* ```pip install spacy```
+* ```python -m spacy download en_core_web_sm```
 
 ## Procédure de lancement
+```
+python ./IRISA-Parser.py [-h] [-t] [-x] pathDirectory
 
+positional arguments:
+  
+  pathDirectory       the path of the input folder containing the pdf files
+
+optional arguments:
+
+  -h, --help  show this help message and exit
+  -t, --text  select plain text result format
+  -x, --xml   select xml result format
+ ```
+  
 
 ## Aide mémoire
 
