@@ -12,10 +12,10 @@ Cet outil sera développé en --, la conversion pdf en format texte sera faite �
 
 ## Procédure d'installastions
 
-###pdfminer :
+### pdfminer :
 * ```pip install pdfminer.six```
 
-###spacy :
+### spacy :
 * ```pip install spacy```
 * ```python -m spacy download en_core_web_sm```
 
