@@ -14,6 +14,7 @@ def run(extraction_result, final_stat):
 
     for p in pages:
         p.sort_y()
+        p.merge_horizontal()
         p.process_accents()
 
     print("APRES PREPROC\n")
