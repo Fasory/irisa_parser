@@ -16,6 +16,7 @@ import extraction
 import os
 import sys
 import argparse
+from alive_progress import alive_bar
 
 
 # import sys: Ce module donne accès à tous les arguments de ligne de commande
@@ -63,10 +64,15 @@ def controler():
         shutil.rmtree(final_stat.output)
 
     # Conversion en txt
-    for path in PDFPath:
-        # DEBUG ############
-        # if not "METICS" in path:
-        #    continue
-        ####################
-        print("Convert file " + path + "...")
-        extraction.run(path, final_stat)
+
+    with alive_bar(len(PDFPath)) as bar :
+        for path in PDFPath:
+            bar.text(path)
+            # DEBUG ############
+            # if not "METICS" in path:
+            #    continue
+            ####################
+            # print("Convert file " + path + "...")
+            extraction.run(path, final_stat)
+            bar()
+            
