@@ -38,13 +38,13 @@ def controler():
 
     final_stat = FinalStat(vars(store)["input"], vars(store)["input"] + "/out")
     for key in vars(store):
-        if(key == "input") :
+        if key == "input":
             continue
         final_stat.addOption(key, vars(store)[key])
 
     pathDirectory = final_stat.input
     # On vérifie si le répertoire entré existe
-    if os.path.exists(pathDirectory) != True:
+    if not os.path.exists(pathDirectory):
         sys.exit("error -> <pathDirectory> does not exist")
     if not os.access(pathDirectory, os.F_OK | os.R_OK | os.W_OK):
         sys.exit("error -> you do not have write AND read permissions")
@@ -60,7 +60,7 @@ def controler():
             PDFPath.append(os.path.join(pathDirectory, file))
 
     # Remove du dossier et son contenu
-    if (os.path.exists(final_stat.output)):
+    if os.path.exists(final_stat.output):
         shutil.rmtree(final_stat.output)
 
     # Conversion en txt

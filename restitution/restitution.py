@@ -6,6 +6,7 @@ import sys
 from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 from xml.dom import minidom
 
+
 def run(processingResult, final_stat):
     restitution(processingResult, final_stat)
 
@@ -17,7 +18,7 @@ def restitution(processingResult, target):
     listExtensions = target.optionsList
 
     for extension in listExtensions:
-        if(listExtensions[extension] == False) :
+        if listExtensions[extension] == False:
             continue
 
         file_name = processingResult.original_file_name.replace(".pdf", extension)
@@ -27,17 +28,17 @@ def restitution(processingResult, target):
             os.remove(file_path)
 
         with open(file_path, 'w', encoding='utf-8') as file:
-            if (extension == ".txt"):
+            if extension == ".txt":
                 restitutionText(file, processingResult)
 
-            if (extension == ".xml"):
+            if extension == ".xml":
                 restitutionXML(file, processingResult)
 
 
 def restitutionText(file, processingResult):
     file.write("Fichier original : " + processingResult.original_file_name + "\n")
 
-    file.write("Titre : " + processingResult.title)
+    file.write("Titre : " + processingResult.title + "\n")
 
     file.write("Auteurs : ")
     if len(processingResult.authors) > 0:
@@ -61,10 +62,10 @@ def restitutionText(file, processingResult):
 def restitutionXML(file, processingResult):
     root = Element('article')
     preamble = SubElement(root, "preambule")
-    preamble.text = "Fichier original : " + processingResult.original_file_name
+    preamble.text = processingResult.original_file_name
 
     title = SubElement(root, "titre")
-    title.text = "Titre : " + processingResult.title
+    title.text = processingResult.title
 
     if len(processingResult.authors) > 0:
         authors = SubElement(root, "auteurs")
@@ -80,6 +81,5 @@ def restitutionXML(file, processingResult):
 
     references = SubElement(root, "references")
     references.text = processingResult.references
-
 
     file.write(minidom.parseString(tostring(root)).toprettyxml(indent="  "))
