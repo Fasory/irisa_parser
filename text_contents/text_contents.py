@@ -84,41 +84,6 @@ class TextPageResult:
     def sort_y(self):
         self._contents.sort(key=lambda c: c.position[1], reverse=True)
 
-    def merge_horizontal(self):
-        new_contents = []
-
-        i = 0
-        while i < len(self._contents):
-            merged = self._contents[i]
-            first_pos = merged.position
-            last_pos = first_pos
-            j = i
-
-            while j + 1 < len(self._contents) and self._contents[j].is_near_horizontal(self._contents[j + 1]):
-                next = self._contents[j + 1]
-                print("-----HORZ-----")
-                print(merged)
-                print("*******")
-                print(next)
-                print("--------------")
-                merged = merged.merge_horizontal(next)
-                last_pos = next.position
-
-                j += 1
-
-            merged.position = (
-                first_pos[0],
-                first_pos[1],
-                last_pos[2],
-                last_pos[3]
-            )
-
-            new_contents.append(merged)
-
-            i = j + 1
-
-        self._contents = new_contents
-
 
 class TextContentResult:
     """
@@ -178,18 +143,6 @@ class TextContentResult:
         char_height = self.major_font_size()
         self._line_spacing = (self.height - lines_count *
                               char_height) / (lines_count)
-
-        # TODO: on garde ça ?
-        # Relcalcule largeur des caractères si encodage buggé (eg. Jing-cutepaste)
-        # => si 1 seul caractère: width = font_size
-        # if len(self._string) == 2 and self._string.endswith("\n") and self.width < char_height:
-        #    x1 = self._position[0]
-        #    y1 = self._position[1]
-        #    x2 = self._position[2]
-        #    y2 = self._position[3]
-
-        #    x2 = x1 + char_height
-        #    self._position = (x1, y1, x2, y2)
 
     def __str__(self):
         return f"{self._position} [{self.width}, {self.height}]\n{repr(self._string)}"
@@ -266,46 +219,6 @@ class TextContentResult:
             .replace("¨U", "Ü").replace("`U", "Ù").replace("ˆU", "Û").replace("'u", "ú").replace("¨u", "ü")\
             .replace("`u", "ù").replace("ˆu", "û").replace("'Y", "Ý").replace("¨Y", "Ÿ").replace("`Y", "Ỳ")\
             .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")
-
-    def is_near_horizontal(self, other):
-        hd = self.hdistance(other)
-
-        print("is_near", repr(self), repr(other),
-              "fs:", self.major_font_size(),
-              "dist:", hd)
-
-        # Un caractère de haut et même police pour les 2 contents
-        if self.height == self.major_font_size() and self.height == other.height\
-                and self.major_font() == other.major_font():
-            # Si se termine par un espace: on merge, car il y a forcément quelque chose après un espace
-            if self._string.endswith(" ") or self._string.endswith(" \n")\
-                    or hd <= self.major_font_size():
-                return True
-
-        return False
-
-    def merge_horizontal(self, other):
-        new = copy.deepcopy(self)
-
-        self_s = new.string
-        if self_s.endswith("\n") and len(self_s) == 2:
-            self_s = self_s[0]
-            print("new self_s", repr(self_s))
-
-        other_s = other.string
-        if other_s.endswith("\n") and len(other_s) == 2:
-            other_s = other_s[0]
-            print("new other_s", repr(other_s))
-
-        new_s = self_s + other_s
-        new_pos = (
-            self.position[0], self.position[1],
-            other.position[2], other.position[3]
-        )
-
-        new._string = new_s
-        new._position = new_pos
-        return new
 
 
 @unique
