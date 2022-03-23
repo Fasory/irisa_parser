@@ -4,6 +4,8 @@ from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVer
 
 from text_contents.EnglishVocab import EnglishVocab
 
+MAX_HEADER_HEIGHT = 80
+
 
 class TextPageResult:
     """
@@ -75,6 +77,15 @@ class TextPageResult:
         self._contents.append(other)
         return self
 
+    def __repr__(self) -> str:
+        s = "-----------PAGE-------------\n"
+        s += "**\nHEADER\n" + repr(self._header) + "\n\n"
+        s += "FOOTER\n" + repr(self._footer) + "\n**\n\n"
+        for c in self._contents:
+            s += repr(c) + "\n"
+
+        return s
+
     def first_content(self):
         return self._contents[0]
 
@@ -111,10 +122,13 @@ class TextPageResult:
         new_contents = []
 
         # Footer
+        to_remove = []
         # 1ers contents de la liste, qui sont en bas de la page
         i = 0
-        while self._contents[i].position[3] < 100:
+        while self._contents[i].position[3] < MAX_HEADER_HEIGHT:
             self._footer.append(self._contents[i])
+            to_remove.append(i)
+
             i += 1
 
         # Les autres contents qui peuvent être en bas de la page
@@ -122,17 +136,25 @@ class TextPageResult:
             c = self._contents[i]
             if c.is_footer(self.major_font(), self.major_font_size()):
                 self._footer.append(c)
+                to_remove.append(i)
             else:
                 new_contents.append(c)
 
             i += 1
 
         # Header
-        for c in self._contents:
-            if c.is_header():
-                self._header.append(c)
-            else:
-                new_contents.append(c)
+        i = 0
+        while i < len(self._contents):
+            # Si le content a déjà été rajouté dans footer, on ne s'en occupe pas
+            if i not in to_remove:
+                c = self._contents[i]
+
+                if c.is_header():
+                    self._header.append(c)
+                else:
+                    new_contents.append(c)
+
+            i += 1
 
         self._contents = new_contents
 
@@ -160,7 +182,7 @@ class TextContentResult:
         self._fonts = {}
         self._alignment = None
 
-        #print(self._string, self._position)
+        # print(self._string, self._position)
 
         lines_count = 0
         for line in elt:
@@ -279,14 +301,14 @@ class TextContentResult:
         return self._string[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
     def is_short(self):
-        return
+        return False
 
     def is_header(self):
-        pass
+        return False
 
     def is_footer(self, page_major_font, page_major_font_size):
         # En bas de la page et commence par une majuscule
-        if self.position[3] < 100 and self.starts_with_uppercase():
+        if self.position[3] < MAX_HEADER_HEIGHT and self.starts_with_uppercase():
             # Police ou taille différente du reste de la page
             if (self.major_font() != page_major_font) or (self.major_font_size() != page_major_font_size):
                 return True

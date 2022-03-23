@@ -20,8 +20,6 @@ def run(extraction_result, final_stat):
     print("APRES PREPROC\n")
     print("#####################", filename, "#####################")
     for p in pages:
-        print("-------AUTRE PAGE-------------")
-        for c in p.contents:
-            print(repr(c))
+        print(repr(p))
 
     processing.run(TextPreprocessingResult(filename, pages), final_stat)
