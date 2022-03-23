@@ -40,3 +40,7 @@ class TextExtractionResult:
                             type(other).__name__)
         self._pages.append(other)
         return self
+
+    def compute_fonts(self):
+        for p in self._pages:
+            p.compute_fonts()

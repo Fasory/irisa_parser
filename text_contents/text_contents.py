@@ -20,6 +20,11 @@ class TextPageResult:
         self._contents = []
         self._width = width
         self._height = height
+        self._fonts = {}
+        self._font_sizes = {}
+
+        self._footer = []
+        self._header = []
 
     @property
     def number(self):
@@ -40,6 +45,27 @@ class TextPageResult:
     def height(self):
         """ Get height """
         return self._height
+
+    def compute_fonts(self):
+        for c in self._contents:
+            font_name = c.major_font()
+            font_size = c.major_font_size()
+
+            if font_name in self._fonts.keys():
+                self._fonts[font_name] += 1
+            else:
+                self._fonts[font_name] = 0
+
+            if font_size in self._font_sizes.keys():
+                self._font_sizes[font_size] += 1
+            else:
+                self._font_sizes[font_size] = 0
+
+    def major_font(self):
+        return max(self._fonts, key=self._fonts.get)
+
+    def major_font_size(self):
+        return max(self._font_sizes, key=self._font_sizes.get)
 
     def __add__(self, other):
         """ Adds a new TextContentResult to the list of contents """
@@ -80,6 +106,20 @@ class TextPageResult:
     def process_accents(self):
         for c in self._contents:
             c.process_accents()
+
+    def process_header_footer(self):
+        # Footer
+        # 1ers contents de la liste, qui sont en bas de la page
+        i = 0
+        while self._contents[i].position[3] < 100:
+            self._footer.append(self._contents[i])
+            i += 1
+
+        # Les autres contents qui peuvent être en bas de la page
+        while i < len(self._contents):
+            c = self._contents[i]
+            # En bas de la page, police ou taille différente, court
+            if c.position[3] < 100 and (c.major_font_size() != self.major_font_size())
 
     def sort_y(self):
         self._contents.sort(key=lambda c: c.position[1], reverse=True)
@@ -144,11 +184,11 @@ class TextContentResult:
         self._line_spacing = (self.height - lines_count *
                               char_height) / (lines_count)
 
-    def __str__(self):
+    def __repr__(self):
         return f"{self._position} [{self.width}, {self.height}]\n{repr(self._string)}"
 
-    def __repr__(self):
-        return f"<{repr(self._string)}>"
+    def __str__(self):
+        return f"-----------\n{self._string}-----------"
 
     def hdistance(self, other_content):
         return self._container.hdistance(other_content.container)
@@ -219,6 +259,16 @@ class TextContentResult:
             .replace("¨U", "Ü").replace("`U", "Ù").replace("ˆU", "Û").replace("'u", "ú").replace("¨u", "ü")\
             .replace("`u", "ù").replace("ˆu", "û").replace("'Y", "Ý").replace("¨Y", "Ÿ").replace("`Y", "Ỳ")\
             .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")
+
+    def vertical_merge(self, other, splitted_word=False):
+        new = copy.deepcopy(self)
+        new._string += other.string
+        new._position = (
+            other.position[0], other.position[1],
+            self._position[2], self._position[3]
+        )
+
+        return new
 
 
 @unique
