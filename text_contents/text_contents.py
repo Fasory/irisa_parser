@@ -108,6 +108,8 @@ class TextPageResult:
             c.process_accents()
 
     def process_header_footer(self):
+        new_contents = []
+
         # Footer
         # 1ers contents de la liste, qui sont en bas de la page
         i = 0
@@ -118,8 +120,21 @@ class TextPageResult:
         # Les autres contents qui peuvent être en bas de la page
         while i < len(self._contents):
             c = self._contents[i]
-            # En bas de la page, police ou taille différente, court
-            if c.position[3] < 100 and (c.major_font_size() != self.major_font_size())
+            if c.is_footer(self.major_font(), self.major_font_size()):
+                self._footer.append(c)
+            else:
+                new_contents.append(c)
+
+            i += 1
+
+        # Header
+        for c in self._contents:
+            if c.is_header():
+                self._header.append(c)
+            else:
+                new_contents.append(c)
+
+        self._contents = new_contents
 
     def sort_y(self):
         self._contents.sort(key=lambda c: c.position[1], reverse=True)
@@ -259,6 +274,24 @@ class TextContentResult:
             .replace("¨U", "Ü").replace("`U", "Ù").replace("ˆU", "Û").replace("'u", "ú").replace("¨u", "ü")\
             .replace("`u", "ù").replace("ˆu", "û").replace("'Y", "Ý").replace("¨Y", "Ÿ").replace("`Y", "Ỳ")\
             .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")
+
+    def starts_with_uppercase(self):
+        return self._string[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+    def is_short(self):
+        return
+
+    def is_header(self):
+        pass
+
+    def is_footer(self, page_major_font, page_major_font_size):
+        # En bas de la page et commence par une majuscule
+        if self.position[3] < 100 and self.starts_with_uppercase():
+            # Police ou taille différente du reste de la page
+            if (self.major_font() != page_major_font) or (self.major_font_size() != page_major_font_size):
+                return True
+
+        return False
 
     def vertical_merge(self, other, splitted_word=False):
         new = copy.deepcopy(self)
