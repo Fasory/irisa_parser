@@ -178,10 +178,13 @@ class TextContentResult:
         self._font_sizes = {}
         self._fonts = {}
         self._alignment = None
+        self._first_font_size = None
+        self._first_font = None
 
         #print(self._string, self._position)
 
         lines_count = 0
+        first_line = True
         for line in elt:
             if not isinstance(line, LTAnno):
                 lines_count += 1
@@ -204,6 +207,10 @@ class TextContentResult:
                 if line.fontname not in self._fonts.keys():
                     self._fonts[line.fontname] = 0
                 self._fonts[line.fontname] += 1
+                if first_line:
+                    self._first_font_size = line.size
+                    self._first_font = line.fontname
+                first_line = False
             elif isinstance(line, LTTextLine):
                 for char in line:
                     if isinstance(char, LTChar):
@@ -213,7 +220,15 @@ class TextContentResult:
                         if char.fontname not in self._fonts.keys():
                             self._fonts[char.fontname] = 0
                         self._fonts[char.fontname] += 1
-
+                        if first_line:
+                            if self._first_font_size == None and self._first_font == None:
+                                self._first_font_size = line.size
+                                self._first_font = line.fontname
+                            elif self._first_font_size != line.size or self._first_font != line.fontname:
+                                self._first_font_size = None
+                                self._first_font = None
+                                first_line = False
+                first_line = False
         char_height = self.major_font_size()
         self._line_spacing = (self.height - lines_count *
                               char_height) / (lines_count)
@@ -233,6 +248,14 @@ class TextContentResult:
     @property
     def container(self):
         return self._container
+
+    @property
+    def first_font_size(self):
+        return self._first_font_size
+
+    @property
+    def first_font(self):
+        return self._first_font
 
     @property
     def height(self):
