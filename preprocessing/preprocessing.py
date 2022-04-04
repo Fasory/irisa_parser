@@ -13,13 +13,13 @@ def run(extraction_result, final_stat):
     pages = extraction_result.pages
 
     for p in pages:
-        p.merge_all()
         p.process_accents()
+        p.process_header_footer()
+        # p.sort_y()
 
-    # print("###########################################################")
-    #print("FIN PREPROC")
-    # for p in pages:
-    #    for c in p.contents:
-    #        print("CONTENT\n", c)
+    print("APRES PREPROC\n")
+    print("#####################", filename, "#####################")
+    for p in pages:
+        print(repr(p))
 
     processing.run(TextPreprocessingResult(filename, pages), final_stat)

@@ -1,7 +1,10 @@
+import copy
 from enum import Enum, unique
 from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine, LTAnno
 
 from text_contents.EnglishVocab import EnglishVocab
+
+MAX_HEADER_HEIGHT = 80
 
 
 class TextPageResult:
@@ -19,6 +22,11 @@ class TextPageResult:
         self._contents = []
         self._width = width
         self._height = height
+        self._fonts = {}
+        self._font_sizes = {}
+
+        self._footer = []
+        self._header = []
 
     @property
     def number(self):
@@ -40,6 +48,27 @@ class TextPageResult:
         """ Get height """
         return self._height
 
+    def compute_fonts(self):
+        for c in self._contents:
+            font_name = c.major_font()
+            font_size = c.major_font_size()
+
+            if font_name in self._fonts.keys():
+                self._fonts[font_name] += 1
+            else:
+                self._fonts[font_name] = 0
+
+            if font_size in self._font_sizes.keys():
+                self._font_sizes[font_size] += 1
+            else:
+                self._font_sizes[font_size] = 0
+
+    def major_font(self):
+        return max(self._fonts, key=self._fonts.get)
+
+    def major_font_size(self):
+        return max(self._font_sizes, key=self._font_sizes.get)
+
     def __add__(self, other):
         """ Adds a new TextContentResult to the list of contents """
         if not isinstance(other, TextContentResult):
@@ -47,6 +76,15 @@ class TextPageResult:
                 "must be TextContentResult, not " + type(other).__name__)
         self._contents.append(other)
         return self
+
+    def __repr__(self) -> str:
+        s = "-----------PAGE-------------\n"
+        s += "**\nHEADER\n" + repr(self._header) + "\n\n"
+        s += "FOOTER\n" + repr(self._footer) + "\n**\n\n"
+        for c in self._contents:
+            s += repr(c) + "\n"
+
+        return s
 
     def first_content(self):
         return self._contents[0]
@@ -80,82 +118,48 @@ class TextPageResult:
         for c in self._contents:
             c.process_accents()
 
-    def merge_all(self):
-        self.merge_horizontal()
-        self.merge_vertical()
-
-        for c in self._contents:
-            c.reconstitute_words()
-
-    def merge_horizontal(self):
+    def process_header_footer(self):
         new_contents = []
 
+        # Footer
+        to_remove = []
+        # 1ers contents de la liste, qui sont en bas de la page
+        i = 0
+        while self._contents[i].position[3] < MAX_HEADER_HEIGHT:
+            self._footer.append(self._contents[i])
+            to_remove.append(i)
+
+            i += 1
+
+        # Les autres contents qui peuvent être en bas de la page
+        while i < len(self._contents):
+            c = self._contents[i]
+            if c.is_footer(self.major_font(), self.major_font_size()):
+                self._footer.append(c)
+                to_remove.append(i)
+            else:
+                new_contents.append(c)
+
+            i += 1
+
+        # Header
         i = 0
         while i < len(self._contents):
-            merged = self._contents[i]
-            first_pos = merged.position
-            last_pos = first_pos
-            j = i
+            # Si le content a déjà été rajouté dans footer, on ne s'en occupe pas
+            if i not in to_remove:
+                c = self._contents[i]
 
-            while j + 1 < len(self._contents) and self._contents[j].is_near_horizontal(self._contents[j + 1]):
-                #print("------MERGE H----")
-                # print(merged.string,
-                #      "*******\n", self._contents[j + 1].string)
-                # print("================")
+                if c.is_header():
+                    self._header.append(c)
+                else:
+                    new_contents.append(c)
 
-                next = self._contents[j + 1]
-                merged.merge_horizontal(next)
-                last_pos = next.position
-
-                j += 1
-
-            merged.position = (
-                first_pos[0],
-                first_pos[1],
-                last_pos[2],
-                last_pos[3]
-            )
-
-            new_contents.append(merged)
-
-            i = j + 1
+            i += 1
 
         self._contents = new_contents
 
-    def merge_vertical(self):
-        new_contents = []
-
-        i = 0
-        while i < len(self._contents):
-            merged = self._contents[i]
-            first_pos = merged.position
-            last_pos = first_pos
-            j = i
-
-            while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
-                #print("------MERGE V----")
-                # print(merged.string,
-                #      "*******\n", self._contents[j + 1].string)
-                # print("================")
-
-                next = self._contents[j + 1]
-                merged.merge_vertical(next)
-                last_pos = next.position
-
-                j += 1
-
-            merged.position = (
-                last_pos[0],
-                last_pos[1],
-                first_pos[2],
-                first_pos[3]
-            )
-
-            new_contents.append(merged)
-
-            i = j + 1
-
-        self._contents = new_contents
+    def sort_y(self):
+        self._contents.sort(key=lambda c: c.position[1], reverse=True)
 
 
 class TextContentResult:
@@ -181,7 +185,7 @@ class TextContentResult:
         self._first_font_size = None
         self._first_font = None
 
-        #print(self._string, self._position)
+        # print(self._string, self._position)
 
         lines_count = 0
         first_line = True
@@ -233,11 +237,11 @@ class TextContentResult:
         self._line_spacing = (self.height - lines_count *
                               char_height) / (lines_count)
 
-    def __str__(self):
-        return f"{self._position}\n'{self._string}'"
-
     def __repr__(self):
-        return f"<{self._string}>"
+        return f"{self._position} [{self.width}, {self.height}]\n{repr(self._string)}"
+
+    def __str__(self):
+        return f"-----------\n{self._string}-----------"
 
     def hdistance(self, other_content):
         return self._container.hdistance(other_content.container)
@@ -250,6 +254,9 @@ class TextContentResult:
         return self._container
 
     @property
+    def width(self):
+        return abs(self.position[0] - self.position[2])
+
     def first_font_size(self):
         return self._first_font_size
 
@@ -297,9 +304,9 @@ class TextContentResult:
     def major_font_size(self):
         return max(self._font_sizes, key=self._font_sizes.get)
 
-    def starts_with_title(self):
-        first_line = self._string.splitlines()[0]
-        return first_line[0].isnumeric() and ("introduction") in first_line[1:].lower()
+    @staticmethod
+    def _check_word(word):
+        return EnglishVocab.instance().check_word(word)
 
     def process_accents(self):
         self._string = self._string.replace("´A", "Á").replace("¨A", "Ä").replace("`A", "À").replace("ˆA", "Â")\
@@ -314,114 +321,33 @@ class TextContentResult:
             .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")\
             .replace("ˇr", "ř").replace("ˇS", "Š")
 
-    @staticmethod
-    def _check_word(word):
-        return EnglishVocab.instance().check_word(word)
+    def starts_with_uppercase(self):
+        return self._string[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-    def is_near_horizontal(self, other):
-        hd = self.hdistance(other)
+    def is_short(self):
+        return False
 
-        self_h = self._container.height
-        other_h = other._container.height
+    def is_header(self):
+        return False
 
-        self_font_size = self.major_font_size()
-        other_font_size = other.major_font_size()
-        # print(
-        #    f"is_near: selfH={self_h}, otherH={other_h}, fontS={self_font_size}, otherFS={other_font_size}, dh={hd}")
-
-        # Si c'est sur une seule ligne
-        if self_h == other_h and self_h == self_font_size and self_font_size == other_font_size:
-            # Si dh < char_margin
-            if hd < 10:  # char_margin
+    def is_footer(self, page_major_font, page_major_font_size):
+        # En bas de la page et commence par une majuscule
+        if self.position[3] < MAX_HEADER_HEIGHT and self.starts_with_uppercase():
+            # Police ou taille différente du reste de la page
+            if (self.major_font() != page_major_font) or (self.major_font_size() != page_major_font_size):
                 return True
 
         return False
 
-    def is_near_vertical(self, other):
-        hd = self.hdistance(other)
-
-        vd = self.vdistance(other)
-
-        self_font_size = self.major_font_size()
-        other_font_size = other.major_font_size()
-
-        self_font = self.major_font()
-        other_font = other.major_font()
-        #print(f"---\n{self._string}\n{other.string}\nfontS={self_font_size}, otherFS={other_font_size}, selfF={self_font}, otherF={other_font}, dv={vd}, spacing={self._line_spacing}, dh={hd}")
-
-        # Doivent être l'un par-dessus l'autre
-        if hd > 1:
-            return False
-
-        # Si titre après => non
-        if other.starts_with_title():
-            return False
-
-        words = self._string.split(" ")
-        last = words[-1]
-        if last.endswith("-") or last.endswith("- ") or last.endswith("-\n"):
-            reconstituted = words[-1][:-1] + other.string.split(" ")[0]
-            if TextContentResult._check_word(reconstituted):
-                return True
-
-        # Même police
-        if self_font_size == other_font_size and self_font.lower() == other_font.lower():
-            # Espace inférieur à l'interligne, OU à la taille d'un caractère
-            if vd < self.major_font_size() or vd < self._line_spacing:
-                return True
-
-        return False
-
-    def merge_horizontal(self, other):
-        self._string = self._string.replace("\n", "")
-        other._string = other.string.replace("\n", "")
-        #print(f"merge fn: '{self._string}' + '{other.string}'")
-
-        self._string += other.string
-        self._position = (
-            self._position[0],
-            self._position[1],
-            other.position[2],
-            other.position[3]
+    def vertical_merge(self, other, splitted_word=False):
+        new = copy.deepcopy(self)
+        new._string += other.string
+        new._position = (
+            other.position[0], other.position[1],
+            self._position[2], self._position[3]
         )
 
-    def merge_vertical(self, other):
-        words = self._string.split(" ")
-        other_words = other.string.split(" ")
-        if words[-1].endswith("-\n") or words[-1].endswith("- ") or words[-1].endswith("-"):
-            reconstituted = words[-1][:-1] + other_words[0]
-            #print("RECONSTI", reconstituted)
-            if TextContentResult._check_word(reconstituted):
-                words[-1] = reconstituted
-                other_words.pop(0)
-                self._string = " ".join(words)
-                other._string = " ".join(other_words)
-
-        self._string += "\n" + other.string
-
-    def reconstitute_words(self):
-        self._string = self.string.replace("- ", "-")\
-            .replace("-\n", "-").replace(":", " :")\
-            .replace(".", " .").replace(",", " ,")\
-            .replace(";", " ;").replace("!", " !")\
-            .replace("?", " ?")
-
-        words = self.string.split(" ")
-
-        for i in range(len(words)):
-            w = words[i]
-            if "-" in w:
-                new = w.replace("-", "").replace("\n", "")
-                #print("RECONSTI for", new, end="")
-                if TextContentResult._check_word(new):
-                    words[i] = new
-                    #print("    ok")
-                # print("")
-
-        self._string = " ".join(words).replace(" :", ":")\
-            .replace(" .", ".").replace(" ,", ",")\
-            .replace(" ;", ";").replace(" !", "!")\
-            .replace(" ?", "?")
+        return new
 
 
 @unique

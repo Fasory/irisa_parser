@@ -64,7 +64,6 @@ def controler():
         shutil.rmtree(final_stat.output)
 
     # Conversion en txt
-
     with alive_bar(len(PDFPath)) as bar :
         for path in PDFPath:
             bar.text(path)
