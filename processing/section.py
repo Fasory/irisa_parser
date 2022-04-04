@@ -12,6 +12,8 @@ class Section(Enum):
     CONCLUSION = 6
     REFERENCE = 7
 
+    superTableauDeClement = [["mot1","mot2"],["mot1","mot2"],["mot1","mot2"],["mot1","mot2"],["mot1","mot2"],["mot1","mot2"],["mot1","mot2"]]
+
     def next(self):
         return [self.TITLE,
                 self.AUTHOR,
@@ -21,6 +23,14 @@ class Section(Enum):
                 self.DISCUSSION,
                 self.CONCLUSION,
                 self.REFERENCE][self:]
+
+    def laSuperMethodeDeClement(self, content, majortruc):
+        if content.major == majortruc:
+            return False
+        for word in content.string.split(" "):
+            if word in self.superTableauDeClement[self.leSuperIdDeClement]:
+                return True
+        return False
 
     def get_form(self):
         return None
