@@ -3,6 +3,8 @@ This file is the main file of the restitution module
 """
 import os
 import sys
+from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
+from xml.dom import minidom
 
 
 def run(processingResult, final_stat):
@@ -13,69 +15,83 @@ def restitution(processingResult, target):
     if not os.path.exists(target.output):
         os.mkdir(target.output)
 
-    file_name = processingResult.original_file_name.replace(".pdf", ".txt")
+    listExtensions = target.optionsList
 
-    file_path = os.path.join(target.output, file_name)
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    for extension in listExtensions:
+        if listExtensions[extension] == False:
+            continue
 
-    with open(file_path, 'w', encoding='utf-8') as file:
+        file_name = processingResult.original_file_name.replace(".pdf", extension)
 
-        if (target._optionsList["text"]):
-            restitutionText(file, processingResult)
+        file_path = os.path.join(target.output, file_name)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
-        if (target._optionsList["xml"]):
-            restitutionXML(file, processingResult)
+        with open(file_path, 'w', encoding='utf-8') as file:
+            if extension == ".txt":
+                restitutionText(file, processingResult)
 
+            if extension == ".xml":
+                restitutionXML(file, processingResult)
 
 
 def restitutionText(file, processingResult):
-        file.write("Fichier original : " + processingResult.original_file_name + "\n")
+    file.write("Fichier original : " + processingResult.original_file_name + "\n")
 
-        file.write("Titre : " + processingResult.title)
+    file.write("Titre : " + processingResult.title + "\n")
 
-        file.write("Auteurs : ")
-        if len(processingResult.authors) > 0:
-            file.write(processingResult.authors[0])
-            for author in processingResult.authors[1:]:
-                file.write(", " + author)
-        file.write("\n")
+    file.write("Auteurs : ")
+    if len(processingResult.authors) > 0:
+        file.write(processingResult.authors[0].name)
+        if processingResult.authors[0].mail != "N/A":
+            file.write(" (" + processingResult.authors[0].mail + ")")
+        for author in processingResult.authors[1:]:
+            file.write(", " + author.name)
+            if author.mail != "N/A":
+                file.write(" (" + author.mail + ")")
+    file.write("\n")
 
-        file.write("Résumé : ")
-        file.write(processingResult.abstract)
+    file.write("Résumé : ")
+    file.write(processingResult.abstract)
+    file.write("\n")
+
+    file.write("Références : " + processingResult.references)
+    file.write("\n")
 
 
 def restitutionXML(file, processingResult):
-    file.write("<article>\n")
+    root = Element('article')
+    preamble = SubElement(root, "preambule")
+    preamble.text = processingResult.original_file_name
 
-    file.write("\t<preamble>")
-    file.write("Fichier original : " + processingResult.original_file_name)
-    file.write("</preamble>\n")
-
-    file.write("\t<titre> ")
-    file.write("Titre : " + processingResult.title)
-    file.write("</titre> \n")
+    title = SubElement(root, "titre")
+    title.text = processingResult.title
 
     if len(processingResult.authors) > 0:
-        file.write("\t<auteurs>\n")
+        authors = SubElement(root, "auteurs")
         for author in processingResult.authors:
-            file.write("\t\t<auteur>")
-            file.write("\t\t\t<name>")
-            file.write(author.name)
-            file.write("</name>\n")
-            file.write("\t\t\t<mail>")
-            file.write(author.mail)
-            file.write("</mail>\n")
-            file.write("\t\t</auteur>")
-        file.write("</auteurs>\n")
+            auth = SubElement(authors, "auteur")
+            name = SubElement(auth, "nom")
+            name.text = author.name
+            mail = SubElement(auth, "mail")
+            mail.text = author.mail
 
-    file.write("\t<abstract>")
-    file.write(processingResult.abstract)
-    file.write("<abstract>\n")
-    file.write("\t<biblio>\n")
+    abstract = SubElement(root, "abstract")
+    abstract.text = processingResult.abstract
 
-    file.write("\t</biblio>\n")
-    file.write("</article>\n")
+    references = SubElement(root, "references")
+    references.text = processingResult.references
 
-def addTab(file, nb) :
-    return None
+    introduction = SubElement(root, "introduction")
+    ## introduction.text = processingResult.introduction
+
+    corps = SubElement(root, "corps")
+    ## corps.text = processingResult.corps
+
+    conclusion = SubElement(root, "conclusion")
+    ## conclusion.text = processingResult.conclusion
+
+    discussion = SubElement(root, "discussion")
+    ## discussion.text = processingResult.discussion
+
+    file.write(minidom.parseString(tostring(root)).toprettyxml(indent="  "))

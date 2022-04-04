@@ -16,6 +16,7 @@ import extraction
 import os
 import sys
 import argparse
+from alive_progress import alive_bar
 
 
 # import sys: Ce module donne accès à tous les arguments de ligne de commande
@@ -30,22 +31,25 @@ def controler():
 
     # Gestion des options
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', "--text", action='store_true', help="select plain text result format")
-    parser.add_argument('-x', "--xml", action='store_true', help="select xml result format")
+    parser.add_argument('-t', "--text", action='store_true', dest=".txt", help="select plain text result format")
+    parser.add_argument('-x', "--xml", dest=".xml", action='store_true', help="select xml result format")
     parser.add_argument('input', help="the path of the input folder containing the pdf files")
     store = parser.parse_args()
 
-    pathDirectory = store.__dict__.get("input")
+    final_stat = FinalStat(vars(store)["input"], vars(store)["input"] + "/out")
+    for key in vars(store):
+        if key == "input":
+            continue
+        final_stat.addOption(key, vars(store)[key])
 
+    pathDirectory = final_stat.input
     # On vérifie si le répertoire entré existe
-    if os.path.exists(pathDirectory) != True:
+    if not os.path.exists(pathDirectory):
         sys.exit("error -> <pathDirectory> does not exist")
     if not os.access(pathDirectory, os.F_OK | os.R_OK | os.W_OK):
         sys.exit("error -> you do not have write AND read permissions")
 
-    final_stat = FinalStat(pathDirectory, os.path.join(pathDirectory, "out"))
-    final_stat.addOption("xml", store.__dict__.get("xml"))
-    final_stat.addOption("text", store.__dict__.get("text"))
+
 
     PDFPath = []
 
@@ -56,25 +60,19 @@ def controler():
             PDFPath.append(os.path.join(pathDirectory, file))
 
     # Remove du dossier et son contenu
-    if (os.path.exists(final_stat.output)):
+    if os.path.exists(final_stat.output):
         shutil.rmtree(final_stat.output)
 
     # Conversion en txt
-    for path in PDFPath:
-        # DEBUG ############
-        # if not "METICS" in path:
-        #    continue
-        ####################
-        print("Convert file " + path + "...")
-        extraction.run(path, final_stat)
 
-
-"""
-Fonction qui détermine un affiche d'erreur de commande
-"""
-
-
-def errorUsage():
-    print("Usage: irisa_parser.py <options> <inputDirectory>")
-    print(exit)
-    exit()
+    with alive_bar(len(PDFPath)) as bar :
+        for path in PDFPath:
+            bar.text(path)
+            # DEBUG ############
+            # if not "METICS" in path:
+            #    continue
+            ####################
+            # print("Convert file " + path + "...")
+            extraction.run(path, final_stat)
+            bar()
+            

@@ -10,9 +10,30 @@
 Le but de ce projet est de créer un analyseur de texte pour le laboratoire IRISA. Celui-ci devra pouvoir tout d'abord convertir le fichier pdf en texte brut qui sera remis en forme par le programme pour être compréhensible par un outil de traitement automatique du langage.
 Cet outil sera développé en --, la conversion pdf en format texte sera faite à l'aide de la librairie python pdftotext.
 
+## Procédure d'installastions
+
+### pdfminer :
+* ```pip install pdfminer.six```
+
+### spacy :
+* ```pip install spacy```
+* ```python -m spacy download en_core_web_sm```
 
 ## Procédure de lancement
+```
+python ./IRISA-Parser.py [-h] [-t] [-x] pathDirectory
 
+positional arguments:
+  
+  pathDirectory       the path of the input folder containing the pdf files
+
+optional arguments:
+
+  -h, --help  show this help message and exit
+  -t, --text  select plain text result format
+  -x, --xml   select xml result format
+ ```
+  
 
 ## Aide mémoire
 

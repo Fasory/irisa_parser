@@ -57,7 +57,10 @@ class Author:
 
     def __init__(self, name, mail=None):
         self._name = name
-        self._mail = mail
+        if mail is None:
+            self._mail = "N/A"
+        else:
+            self._mail = mail
 
     @property
     def name(self):

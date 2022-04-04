@@ -177,14 +177,18 @@ class TextContentResult:
                             type(elt).__name__)
         self._container = elt
         self._string = elt.get_text()
-        self._position = elt.bbox
+        self._position = (min(elt.bbox[0], elt.bbox[2]), min(elt.bbox[1], elt.bbox[3]), max(elt.bbox[0], elt.bbox[2]),
+                          max(elt.bbox[1], elt.bbox[3]))
         self._font_sizes = {}
         self._fonts = {}
         self._alignment = None
+        self._first_font_size = None
+        self._first_font = None
 
         # print(self._string, self._position)
 
         lines_count = 0
+        first_line = True
         for line in elt:
             if not isinstance(line, LTAnno):
                 lines_count += 1
@@ -207,6 +211,10 @@ class TextContentResult:
                 if line.fontname not in self._fonts.keys():
                     self._fonts[line.fontname] = 0
                 self._fonts[line.fontname] += 1
+                if first_line:
+                    self._first_font_size = line.size
+                    self._first_font = line.fontname
+                first_line = False
             elif isinstance(line, LTTextLine):
                 for char in line:
                     if isinstance(char, LTChar):
@@ -216,7 +224,15 @@ class TextContentResult:
                         if char.fontname not in self._fonts.keys():
                             self._fonts[char.fontname] = 0
                         self._fonts[char.fontname] += 1
-
+                        if first_line:
+                            if self._first_font_size == None and self._first_font == None:
+                                self._first_font_size = line.size
+                                self._first_font = line.fontname
+                            elif self._first_font_size != line.size or self._first_font != line.fontname:
+                                self._first_font_size = None
+                                self._first_font = None
+                                first_line = False
+                first_line = False
         char_height = self.major_font_size()
         self._line_spacing = (self.height - lines_count *
                               char_height) / (lines_count)
@@ -240,6 +256,13 @@ class TextContentResult:
     @property
     def width(self):
         return abs(self.position[0] - self.position[2])
+
+    def first_font_size(self):
+        return self._first_font_size
+
+    @property
+    def first_font(self):
+        return self._first_font
 
     @property
     def height(self):
@@ -295,7 +318,8 @@ class TextContentResult:
             .replace("'o", "ó").replace("¨o", "ö").replace("`o", "ò").replace("ˆo", "ô").replace("'U", "Ú")\
             .replace("¨U", "Ü").replace("`U", "Ù").replace("ˆU", "Û").replace("'u", "ú").replace("¨u", "ü")\
             .replace("`u", "ù").replace("ˆu", "û").replace("'Y", "Ý").replace("¨Y", "Ÿ").replace("`Y", "Ỳ")\
-            .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")
+            .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")\
+            .replace("ˇr", "ř").replace("ˇS", "Š")
 
     def starts_with_uppercase(self):
         return self._string[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
