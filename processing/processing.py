@@ -201,7 +201,7 @@ def link_mails(authors, mails):
                                       None if current_mail is None else mails_map[current_mail]))
             if current_mail is not None:
                 mails_linked.append(current_mail)
-    # dernière tentative d'assotiation pour les mails non match
+    # dernière tentative d'assotiation pour les mails nom match
     for no_match in [elt for elt in mails_map.keys() if elt not in mails_linked]:
         new_authors = research_match_by_first_letter(no_match, new_authors, mails_map)
     return new_authors
