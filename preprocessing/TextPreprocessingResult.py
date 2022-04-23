@@ -21,17 +21,45 @@ class TextPreprocessingResult:
         self._major_font_size = None
 
         self._contents = []
-        for p in pages:
-            for c in p.contents:
-                self._contents.append(c)
 
         self.preprocess()
+        self.compute_fonts()
+
+    def compute_fonts(self):
+        fonts = {}
+        font_sizes = {}
+        for p in self._pages:
+            font_name = p.major_font
+            font_size = p.major_font_size
+
+            if font_name in fonts.keys():
+                fonts[font_name] += 1
+            else:
+                fonts[font_name] = 0
+
+            if font_size in font_sizes.keys():
+                font_sizes[font_size] += 1
+            else:
+                font_sizes[font_size] = 0
+
+        self._major_font = max(fonts, key=fonts.get)
+        self._major_font_size = max(font_sizes, key=font_sizes.get)
 
 
     def preprocess(self):
         for p in self._pages:
             p.process_header_footer()
+        
+        # Compter les colonnes
+        first_page = self._pages[0]
+        nb_columns = first_page.count_columns()
+        for p in self._pages:
+            p.process_columns(nb_columns)
+
+        for p in self._pages:
             p.process_accents()
+
+            self._contents += p.contents
 
     def print_result(self):
         print("APRES PREPROC\n")

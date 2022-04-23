@@ -13,5 +13,6 @@ def run(extraction_result, final_stat):
     pages = extraction_result.pages
 
     preprocessed = TextPreprocessingResult(filename, pages)
+    preprocessed.print_result()
 
     processing.run(preprocessed, final_stat)

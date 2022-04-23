@@ -10,6 +10,13 @@ MAX_FOOTER_HEIGHT = 100 # si en fonction des marges: 25 # 80
 HEADER_LEN_LIMIT = 150
 FOOTER_LEN_LIMIT = 110
 
+APPROX_EQ_LIMIT = 2
+
+def approx_equal(constant, value_to_test):
+    return abs(constant - value_to_test) <= APPROX_EQ_LIMIT
+
+def sort_y(contents_lst):
+    contents_lst.sort(key=lambda c: c.position[1], reverse=True)
 
 class TextPageResult:
     """
@@ -198,6 +205,45 @@ class TextPageResult:
             i += 1
 
         self._contents = new_contents
+
+    def is_on_left(self, content):
+        mid_x = self.width / 2
+        return approx_equal(mid_x, content.position[2])
+
+    def is_on_right(self, content):
+        mid_x = self.width / 2
+        return approx_equal(mid_x, content.position[0])
+
+    # Si plus de la moitié des contents sont soit à gauche soit à droite du centre de la page, alors il y a 2 colonnes
+    def count_columns(self):
+        counter = 0
+        for c in self._contents:
+            # Si le content est à gauche ou à droite du centre, on rajouter 1 au compteur
+            if self.is_on_left(c) or self.is_on_right(c):
+                counter += 1
+        
+        if counter / len(self._contents) >= 0.5:
+            return 2
+        else:
+            return 1
+
+    def process_columns(self, nb_columns):
+        if nb_columns == 2:
+            # Séparation en 2 listes indépendantes
+            left_contents = []
+            right_contents = []
+            for c in self._contents:
+                if self.is_on_right(c):
+                    right_contents.append(c)
+                # Par défaut, les contents sont mis à gauche (content qui sont pile au centre par ex)
+                else:
+                    left_contents.append(c)
+
+            sort_y(left_contents)
+            sort_y(right_contents)
+            self._contents = left_contents + right_contents
+        else:
+            sort_y(self._contents)
 
     def sort_y(self):
         self._contents.sort(key=lambda c: c.position[1], reverse=True)
