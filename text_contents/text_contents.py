@@ -12,8 +12,9 @@ FOOTER_LEN_LIMIT = 110
 
 APPROX_EQ_LIMIT = 2
 
-def approx_equal(constant, value_to_test):
-    return abs(constant - value_to_test) <= APPROX_EQ_LIMIT
+def approx_equal(x, y):
+    print(abs(x-y))
+    return abs(x - y) <= APPROX_EQ_LIMIT
 
 def sort_y(contents_lst):
     contents_lst.sort(key=lambda c: c.position[1], reverse=True)
@@ -112,6 +113,18 @@ class TextPageResult:
 
         return s
 
+    def __str__(self):
+        s = "-----------PAGE-------------\n"
+        s += f"{self._width}x{self._height}\n"
+        s += f"Margin: {self._top_margin_size}\n"
+        s += f"FONT: {self.major_font}: {self.major_font_size}\n"
+        s += "**\nHEADER\n" + repr(self._header) + "\n\n"
+        s += "FOOTER\n" + repr(self._footer) + "\n**\n\n"
+        for c in self._contents:
+            s += str(c) + "\n"
+
+        return s
+
     def first_content(self):
         return self._contents[0]
 
@@ -206,20 +219,31 @@ class TextPageResult:
 
         self._contents = new_contents
 
+    def is_centered(self, content):
+        mid_x = self.width / 2
+        content_center = content.get_center_x()
+        print("center? ", end="")
+        return approx_equal(mid_x, content_center)
+
     def is_on_left(self, content):
         mid_x = self.width / 2
-        return approx_equal(mid_x, content.position[2])
+        content_center = content.get_center_x()
+        print("left? ", end="")
+        return content_center <= mid_x
 
     def is_on_right(self, content):
         mid_x = self.width / 2
-        return approx_equal(mid_x, content.position[0])
+        content_center = content.get_center_x()
+        print("right? ", end="")
+        return content_center > mid_x
 
     # Si plus de la moitié des contents sont soit à gauche soit à droite du centre de la page, alors il y a 2 colonnes
     def count_columns(self):
         counter = 0
         for c in self._contents:
+            print("...................")
             # Si le content est à gauche ou à droite du centre, on rajouter 1 au compteur
-            if self.is_on_left(c) or self.is_on_right(c):
+            if (not self.is_centered(c)) and (self.is_on_left(c) or self.is_on_right(c)):
                 counter += 1
         
         if counter / len(self._contents) >= 0.5:
@@ -233,7 +257,9 @@ class TextPageResult:
             left_contents = []
             right_contents = []
             for c in self._contents:
-                if self.is_on_right(c):
+                if self.is_centered(c):
+                    left_contents.append(c)
+                elif self.is_on_right(c):
                     right_contents.append(c)
                 # Par défaut, les contents sont mis à gauche (content qui sont pile au centre par ex)
                 else:
@@ -404,6 +430,9 @@ class TextContentResult:
     @staticmethod
     def _check_word(word):
         return EnglishVocab.instance().check_word(word)
+
+    def get_center_x(self):
+        return (self.position[0] + self.position[2]) / 2
 
     def process_accents(self):
         self._string = self._string.replace("´A", "Á").replace("¨A", "Ä").replace("`A", "À").replace("ˆA", "Â")\
