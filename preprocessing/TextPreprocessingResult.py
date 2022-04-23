@@ -20,6 +20,25 @@ class TextPreprocessingResult:
         self._major_font = None
         self._major_font_size = None
 
+        self._contents = []
+        for p in pages:
+            for c in p.contents:
+                self._contents.append(c)
+
+        self.preprocess()
+
+
+    def preprocess(self):
+        for p in self._pages:
+            p.process_header_footer()
+            p.process_accents()
+
+    def print_result(self):
+        print("APRES PREPROC\n")
+        print("#####################", self._filename, "#####################")
+        for p in self._pages:
+            print(repr(p))
+
     @property
     def filename(self):
         """Get PDF file name"""
@@ -29,6 +48,11 @@ class TextPreprocessingResult:
     def pages(self):
         """Get the pages"""
         return self._pages
+
+    @property
+    def contents(self):
+        """Get the contents"""
+        return self._contents
 
     @property
     def major_font(self):

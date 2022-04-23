@@ -12,15 +12,6 @@ def run(extraction_result, final_stat):
     filename = extraction_result.file_name
     pages = extraction_result.pages
 
-    for p in pages:
-        p.process_header_footer()
-        #p.delete_useless_contents()
-        p.process_accents()
-        # p.sort_y()
+    preprocessed = TextPreprocessingResult(filename, pages)
 
-    print("APRES PREPROC\n")
-    print("#####################", filename, "#####################")
-    for p in pages:
-        print(repr(p))
-
-    processing.run(TextPreprocessingResult(filename, pages), final_stat)
+    processing.run(preprocessed, final_stat)
