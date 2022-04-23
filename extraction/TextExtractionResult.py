@@ -41,6 +41,10 @@ class TextExtractionResult:
         self._pages.append(other)
         return self
 
+    def delete_out_of_bounds(self):
+        for p in self._pages:
+            p.delete_out_of_bounds()
+
     def compute_fonts(self):
         for p in self._pages:
             p.compute_fonts()

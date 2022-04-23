@@ -13,8 +13,9 @@ def run(extraction_result, final_stat):
     pages = extraction_result.pages
 
     for p in pages:
-        p.process_accents()
         p.process_header_footer()
+        #p.delete_useless_contents()
+        p.process_accents()
         # p.sort_y()
 
     print("APRES PREPROC\n")

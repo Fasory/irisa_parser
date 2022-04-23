@@ -1,10 +1,14 @@
 import copy
 from enum import Enum, unique
+from math import floor
 from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine, LTAnno
 
 from text_contents.EnglishVocab import EnglishVocab
 
-MAX_HEADER_HEIGHT = 80
+MAX_HEADER_HEIGHT = 70 #70
+MAX_FOOTER_HEIGHT = 100 # si en fonction des marges: 25 # 80
+HEADER_LEN_LIMIT = 150
+FOOTER_LEN_LIMIT = 110
 
 
 class TextPageResult:
@@ -27,6 +31,8 @@ class TextPageResult:
 
         self._footer = []
         self._header = []
+
+        self._top_margin_size = 0
 
     @property
     def number(self):
@@ -63,11 +69,16 @@ class TextPageResult:
             else:
                 self._font_sizes[font_size] = 0
 
+        # La taille de la marge est le Y du content qui a le plus petit Y
+        biggest_y_content = max(self._contents, key=lambda c: c.position[3])
+        self._top_margin_size = self.height - biggest_y_content.position[3]
+
+
     def major_font(self):
         return max(self._fonts, key=self._fonts.get)
 
     def major_font_size(self):
-        return max(self._font_sizes, key=self._font_sizes.get)
+        return round(max(self._font_sizes, key=self._font_sizes.get))
 
     def __add__(self, other):
         """ Adds a new TextContentResult to the list of contents """
@@ -79,6 +90,9 @@ class TextPageResult:
 
     def __repr__(self) -> str:
         s = "-----------PAGE-------------\n"
+        s += f"{self._width}x{self._height}\n"
+        s += f"Margin: {self._top_margin_size}\n"
+        s += f"FONT: {self.major_font()}: {self.major_font_size()}\n"
         s += "**\nHEADER\n" + repr(self._header) + "\n\n"
         s += "FOOTER\n" + repr(self._footer) + "\n**\n\n"
         for c in self._contents:
@@ -114,9 +128,30 @@ class TextPageResult:
                 proper.append(content)
         return proper
 
+    def delete_useless_contents(self):
+        """Delete contents that must NOT be restituted (such as annotations)"""
+        print("PAGE FONT:", self.major_font())
+        print("PAGE FONT SIZE:", self.major_font_size())
+        print("=====SEC===========================")
+        print([c for c in self._contents if c.is_secondary(self.major_font(), self.major_font_size())])
+        print("===================================")
+
+        self._contents = [c for c in self._contents if not c.is_secondary(
+            self.major_font(), self.major_font_size())]
+
     def process_accents(self):
         for c in self._contents:
             c.process_accents()
+
+    def is_header(self, content):
+        return content.position[1] >= (self._height - MAX_HEADER_HEIGHT) and len(content) <= HEADER_LEN_LIMIT and content.is_short() and (content.starts_with_uppercase() or content.starts_with_number())
+
+    def is_footer(self, content):
+        # En bas de la page et commence par une majuscule
+        if content.position[1] < MAX_FOOTER_HEIGHT and (content.starts_with_uppercase() or content.starts_with_number()) and len(content) <= FOOTER_LEN_LIMIT:
+            return True
+
+        return False
 
     def process_header_footer(self):
         new_contents = []
@@ -125,7 +160,7 @@ class TextPageResult:
         to_remove = []
         # 1ers contents de la liste, qui sont en bas de la page
         i = 0
-        while self._contents[i].position[3] < MAX_HEADER_HEIGHT:
+        while self._contents[i].position[3] <= MAX_FOOTER_HEIGHT:
             self._footer.append(self._contents[i])
             to_remove.append(i)
 
@@ -134,11 +169,9 @@ class TextPageResult:
         # Les autres contents qui peuvent être en bas de la page
         while i < len(self._contents):
             c = self._contents[i]
-            if c.is_footer(self.major_font(), self.major_font_size()):
+            if self.is_footer(c):
                 self._footer.append(c)
                 to_remove.append(i)
-            else:
-                new_contents.append(c)
 
             i += 1
 
@@ -149,7 +182,7 @@ class TextPageResult:
             if i not in to_remove:
                 c = self._contents[i]
 
-                if c.is_header():
+                if self.is_header(c):
                     self._header.append(c)
                 else:
                     new_contents.append(c)
@@ -184,8 +217,6 @@ class TextContentResult:
         self._alignment = None
         self._first_font_size = None
         self._first_font = None
-
-        # print(self._string, self._position)
 
         lines_count = 0
         first_line = True
@@ -237,8 +268,14 @@ class TextContentResult:
         self._line_spacing = (self.height - lines_count *
                               char_height) / (lines_count)
 
+    def __len__(self):
+        return len(self._string)
+
+    def __contains__(self, word):
+        return word in self._string
+
     def __repr__(self):
-        return f"{self._position} [{self.width}, {self.height}]\n{repr(self._string)}"
+        return f"<F={repr(self.major_font())} FS={repr(self.major_font_size())}> {self._position} [{self.width}, {self.height}]\n{repr(self._string)}"
 
     def __str__(self):
         return f"-----------\n{self._string}-----------"
@@ -302,7 +339,7 @@ class TextContentResult:
         return max(self._fonts, key=self._fonts.get)
 
     def major_font_size(self):
-        return max(self._font_sizes, key=self._font_sizes.get)
+        return round(max(self._font_sizes, key=self._font_sizes.get))
 
     @staticmethod
     def _check_word(word):
@@ -321,23 +358,18 @@ class TextContentResult:
             .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")\
             .replace("ˇr", "ř").replace("ˇS", "Š")
 
+    def is_secondary(self, page_major_font, page_major_font_size):
+        """Check if the content is an annotation or anything else that must NOT be restituted"""
+        return self.major_font() != page_major_font or self.major_font_size() != page_major_font_size
+
     def starts_with_uppercase(self):
-        return self._string[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        return self._string.strip()[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+    def starts_with_number(self):
+        return self._string.strip()[0] in "0123456789"
 
     def is_short(self):
-        return False
-
-    def is_header(self):
-        return False
-
-    def is_footer(self, page_major_font, page_major_font_size):
-        # En bas de la page et commence par une majuscule
-        if self.position[3] < MAX_HEADER_HEIGHT and self.starts_with_uppercase():
-            # Police ou taille différente du reste de la page
-            if (self.major_font() != page_major_font) or (self.major_font_size() != page_major_font_size):
-                return True
-
-        return False
+        return len(self) <= HEADER_LEN_LIMIT
 
     def vertical_merge(self, other, splitted_word=False):
         new = copy.deepcopy(self)
