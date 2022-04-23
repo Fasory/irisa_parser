@@ -12,7 +12,8 @@ class TextProcessingResult:
     data needed to write the output text file
     """
 
-    def __init__(self, filename, title, authors, abstract, references):
+    def __init__(self, filename, title="N/A", authors="N/A", abstract="N/A", introduction="N/A", body="N/A",
+                 discussion="N/A", conclusion="N/A", references="N/A"):
         """
         Create TextProcessingResult with these 4 pieces of information:
             - PDF file name
@@ -25,6 +26,10 @@ class TextProcessingResult:
         self._title = title
         self._authors = authors
         self._abstract = abstract
+        self._introduction = introduction
+        self._body = body
+        self._discussion = discussion
+        self._conclusion = conclusion
         self._references = references
 
     @property
@@ -37,20 +42,72 @@ class TextProcessingResult:
         """Get the title"""
         return self._title
 
+    @title.setter
+    def title(self, val):
+        self._title = val
+
     @property
     def authors(self):
         """Get the authors"""
         return self._authors
+
+    @authors.setter
+    def authors(self, val):
+        self._authors = val
 
     @property
     def abstract(self):
         """Get the abstract"""
         return self._abstract
 
+    @abstract.setter
+    def abstract(self, val):
+        self._abstract = val
+
+    @property
+    def introduction(self):
+        """Get the introduction"""
+        return self._introduction
+
+    @introduction.setter
+    def introduction(self, val):
+        self._introduction = val
+
+    @property
+    def body(self):
+        """Get the body"""
+        return self._body
+
+    @body.setter
+    def body(self, val):
+        self._body = val
+
+    @property
+    def discussion(self):
+        """Get the discussion"""
+        return self._discussion
+
+    @discussion.setter
+    def discussion(self, val):
+        self._discussion = val
+
+    @property
+    def conclusion(self):
+        """Get the conclusion"""
+        return self._conclusion
+
+    @conclusion.setter
+    def conclusion(self, val):
+        self._conclusion = val
+
     @property
     def references(self):
         """Get the references"""
         return self._references
+
+    @references.setter
+    def references(self, val):
+        self._references = val
 
 
 class Author:
