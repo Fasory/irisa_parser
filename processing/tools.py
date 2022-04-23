@@ -23,9 +23,9 @@ def largest_contents(contents, alignment=None):
             if alignment is not None:
                 if content.alignment != alignment:
                     continue
-            if result_contents[0].major_font_size() == content.major_font_size():
+            if result_contents[0].major_font_size == content.major_font_size:
                 result_contents.append(content)
-            elif result_contents[0].major_font_size() < content.major_font_size():
+            elif result_contents[0].major_font_size < content.major_font_size:
                 result_contents = [content]
     return result_contents
 
@@ -259,7 +259,7 @@ def column_extraction(references, standard, pages):
     first_position = standard.position[0]
     references += " " + string_with_constraints(pages[0].contents, standard, first_position,
                                                 None, standard.fonts,
-                                                round(standard.major_font_size(), 2), 20)
+                                                round(standard.major_font_size, 2), 20)
     # Si la position x du content de référence est inférieur 1/3 de la largeur de la page, alors on doit
     # récupérer la deuxième colonne à gauche
     if standard.position[0] < pages[0].width / 3:
@@ -268,7 +268,7 @@ def column_extraction(references, standard, pages):
                                                      standard.position[2] - standard.position[0])
         references += " " + string_with_constraints(pages[0].contents, None, second_posisition,
                                                     None, standard.fonts,
-                                                    round(standard.major_font_size(), 2), 20)
+                                                    round(standard.major_font_size, 2), 20)
     else:
         second_posisition = search_target_x_position(pages[0].contents,
                                                      first_position - pages[0].width / 2,
@@ -278,22 +278,22 @@ def column_extraction(references, standard, pages):
         # Colonne gauche
         references += " " + string_with_constraints(page.contents, None, first_position,
                                                     None, standard.fonts,
-                                                    round(standard.major_font_size(), 2), 20)
+                                                    round(standard.major_font_size, 2), 20)
         # Colonne droite
         references += " " + string_with_constraints(page.contents, None, second_posisition,
                                                     None, standard.fonts,
-                                                    round(standard.major_font_size(), 2), 20)
+                                                    round(standard.major_font_size, 2), 20)
     return references
 
 
 def default_extraction(references, standard, pages):
     references += " " + string_with_constraints(pages[0].contents, standard, standard.position[0],
                                                 None, standard.fonts,
-                                                round(standard.major_font_size(), 2), 20)
+                                                round(standard.major_font_size, 2), 20)
     for page in pages[1:]:
         references += " " + string_with_constraints(page.contents, None, standard.position[0],
                                                     None, standard.fonts,
-                                                    round(standard.major_font_size(), 2), 20)
+                                                    round(standard.major_font_size, 2), 20)
     return references
 
 
@@ -303,7 +303,7 @@ def string_with_constraints(contents, under=None, x0=None, x1=None, fonts=None, 
         if under is None or content.position[3] < under.position[1]:
             if (x0 is None or round(x0, 5) - 20 <= round(content.position[0], 5) <= round(x0, 5) + 20) and \
                     (x1 is None or round(x1, 5) - 20 <= round(content.position[2], 5) <= round(x1, 5) + 20) and \
-                    (font_size is None or font_size == round(content.major_font_size(), 2)) and \
+                    (font_size is None or font_size == round(content.major_font_size, 2)) and \
                     (size is None or size <= len(content.string)):
                 for font in fonts:
                     if font in content.fonts:

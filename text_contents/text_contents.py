@@ -56,8 +56,8 @@ class TextPageResult:
 
     def compute_fonts(self):
         for c in self._contents:
-            font_name = c.major_font()
-            font_size = c.major_font_size()
+            font_name = c.major_font
+            font_size = c.major_font_size
 
             if font_name in self._fonts.keys():
                 self._fonts[font_name] += 1
@@ -73,12 +73,17 @@ class TextPageResult:
         biggest_y_content = max(self._contents, key=lambda c: c.position[3])
         self._top_margin_size = self.height - biggest_y_content.position[3]
 
+        self._major_font = max(self._fonts, key=self._fonts.get)
+        self._major_font_size = round(max(self._font_sizes, key=self._font_sizes.get))
 
+
+    @property
     def major_font(self):
-        return max(self._fonts, key=self._fonts.get)
+        return self._major_font
 
+    @property
     def major_font_size(self):
-        return round(max(self._font_sizes, key=self._font_sizes.get))
+        return self._major_font_size
 
     def __add__(self, other):
         """ Adds a new TextContentResult to the list of contents """
@@ -92,7 +97,7 @@ class TextPageResult:
         s = "-----------PAGE-------------\n"
         s += f"{self._width}x{self._height}\n"
         s += f"Margin: {self._top_margin_size}\n"
-        s += f"FONT: {self.major_font()}: {self.major_font_size()}\n"
+        s += f"FONT: {self.major_font}: {self.major_font_size}\n"
         s += "**\nHEADER\n" + repr(self._header) + "\n\n"
         s += "FOOTER\n" + repr(self._footer) + "\n**\n\n"
         for c in self._contents:
@@ -128,16 +133,19 @@ class TextPageResult:
                 proper.append(content)
         return proper
 
+    def is_secondary(self, content):
+        """Check if the content is an annotation or anything else that must NOT be restituted"""
+        return content.major_font != self.major_font or content.major_font_size != self.major_font_size
+
     def delete_useless_contents(self):
         """Delete contents that must NOT be restituted (such as annotations)"""
-        print("PAGE FONT:", self.major_font())
-        print("PAGE FONT SIZE:", self.major_font_size())
-        print("=====SEC===========================")
-        print([c for c in self._contents if c.is_secondary(self.major_font(), self.major_font_size())])
-        print("===================================")
+        #print("PAGE FONT:", self.major_font)
+        #print("PAGE FONT SIZE:", self.major_font_size)
+        #print("=====SEC===========================")
+        #print([c for c in self._contents if c.is_secondary(self.major_font, self.major_font_size)])
+        #print("===================================")
 
-        self._contents = [c for c in self._contents if not c.is_secondary(
-            self.major_font(), self.major_font_size())]
+        self._contents = [c for c in self._contents if not self.is_secondary(c)]
 
     def process_accents(self):
         for c in self._contents:
@@ -264,9 +272,21 @@ class TextContentResult:
                                 self._first_font = None
                                 first_line = False
                 first_line = False
-        char_height = self.major_font_size()
+
+        self._major_font = max(self._fonts, key=self._fonts.get)
+        self._major_font_size = round(max(self._font_sizes, key=self._font_sizes.get))
+
+        char_height = self.major_font_size
         self._line_spacing = (self.height - lines_count *
                               char_height) / (lines_count)
+
+    @property
+    def major_font(self):
+        return self._major_font
+
+    @property
+    def major_font_size(self):
+        return self._major_font_size
 
     def __len__(self):
         return len(self._string)
@@ -275,7 +295,7 @@ class TextContentResult:
         return word in self._string
 
     def __repr__(self):
-        return f"<F={repr(self.major_font())} FS={repr(self.major_font_size())}> {self._position} [{self.width}, {self.height}]\n{repr(self._string)}"
+        return f"<F={repr(self.major_font)} FS={repr(self.major_font_size)}> {self._position} [{self.width}, {self.height}]\n{repr(self._string)}"
 
     def __str__(self):
         return f"-----------\n{self._string}-----------"
@@ -335,12 +355,6 @@ class TextContentResult:
         """ Get alignment """
         return self._alignment
 
-    def major_font(self):
-        return max(self._fonts, key=self._fonts.get)
-
-    def major_font_size(self):
-        return round(max(self._font_sizes, key=self._font_sizes.get))
-
     @staticmethod
     def _check_word(word):
         return EnglishVocab.instance().check_word(word)
@@ -357,10 +371,6 @@ class TextContentResult:
             .replace("`u", "ù").replace("ˆu", "û").replace("'Y", "Ý").replace("¨Y", "Ÿ").replace("`Y", "Ỳ")\
             .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")\
             .replace("ˇr", "ř").replace("ˇS", "Š")
-
-    def is_secondary(self, page_major_font, page_major_font_size):
-        """Check if the content is an annotation or anything else that must NOT be restituted"""
-        return self.major_font() != page_major_font or self.major_font_size() != page_major_font_size
 
     def starts_with_uppercase(self):
         return self._string.strip()[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
