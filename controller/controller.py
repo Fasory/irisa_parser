@@ -70,12 +70,15 @@ def controler():
         print("")
         print(cptNbFile + 3, '-- Parse')
         option = int(input('Enter your choice: '))
+        #print("opt", option)
 
         if option < cptNbFile:
-            fileToConvert.append(PDFPath[i])
+            #print(option, PDFPath[option])
+            fileToConvert.append(PDFPath[option])
 
         elif option == cptNbFile + 1:
-            fileToConvert.append(os.path.join(pathDirectory, file))
+            #fileToConvert.append(os.path.join(pathDirectory, file))
+            fileToConvert = PDFPath
 
         elif option == cptNbFile + 2:
             print(
@@ -85,6 +88,8 @@ def controler():
             break
         else:
             print('Invalid option. Please enter a number between 0 and', cptNbFile + 3, '.')
+
+        #print(fileToConvert)
 
     # Remove du dossier et son contenu
     if (os.path.exists(final_stat.output)):
