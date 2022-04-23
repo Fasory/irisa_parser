@@ -228,7 +228,7 @@ class TextContentResult:
                             if self._first_font_size == None and self._first_font == None:
                                 self._first_font_size = char.size
                                 self._first_font = char.fontname
-                            elif self._first_font_size != line.size or self._first_font != char.fontname:
+                            elif self._first_font_size != char.size or self._first_font != char.fontname:
                                 self._first_font_size = None
                                 self._first_font = None
                                 first_line = False
