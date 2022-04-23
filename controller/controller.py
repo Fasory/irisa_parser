@@ -67,6 +67,8 @@ def controler():
             print(i, '-- ', PDFPath[i])
         print(cptNbFile + 1, '-- All')
         print(cptNbFile + 2, '-- Exit')
+        print("")
+        print(cptNbFile + 3, '-- Parse')
         option = int(input('Enter your choice: '))
 
         if option < cptNbFile:
@@ -79,8 +81,10 @@ def controler():
             print(
                 '\nThanks for using our parser, \n\nJulie-Amélie BIDAULT,\nClément BOUQUET,\nYoann DEWILDE,\nMewen BERTHELOT')
             exit()
+        elif option == cptNbFile + 3:
+            break
         else:
-            print('Invalid option. Please enter a number between 0 and', cptNbFile + 2, '.')
+            print('Invalid option. Please enter a number between 0 and', cptNbFile + 3, '.')
 
     # Remove du dossier et son contenu
     if (os.path.exists(final_stat.output)):
@@ -91,10 +95,5 @@ def controler():
     with alive_bar(len(fileToConvert)) as bar:
         for path in fileToConvert:
             bar.text(path)
-            # DEBUG ############
-            # if not "METICS" in path:
-            #    continue
-            ####################
-            # print("Convert file " + path + "...")
             extraction.run(path, final_stat)
             bar()
