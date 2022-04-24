@@ -16,8 +16,8 @@ def run(result, final_stat):
     text_processing_result = TextProcessingResult(result.filename)
     text_processing_result.title, content_title = find_title(result.pages)
     text_processing_result.authors = link_mails(find_authors(result.pages, content_title), find_mails(result.pages))
-    text_processing_result.abstract = find_abstract(result.pages)
-    section_extraction(result, text_processing_result, Section.BODY, Section.REFERENCE)
+    text_processing_result.abstract, content_abstract = find_abstract(result.pages)
+    section_extraction(result, text_processing_result, content_abstract, Section.INTRODUCTION, Section.REFERENCE)
     text_processing_result.references = find_references(result.pages)
     restitution.run(text_processing_result, final_stat)
 
@@ -218,7 +218,7 @@ def find_abstract(pages):
     :return:
     """
     if len(pages) == 0:
-        return "N/A"
+        return "N/A", None
     for content in pages[0].contents:
         # filtre les contenus uniquement horizontaux
         if content.alignment is TextAlignment.HORIZONTAL or content.alignment is None:
@@ -226,19 +226,19 @@ def find_abstract(pages):
             if "abstract" in content.string[:15].lower():
                 # cas où le titre de la section "Abstract" et le paragraphe sont dans le même content
                 if len(content.string) > 15:
-                    return content.string.replace("\n", " ")
+                    return content.string.replace("\n", " "), content
                 # cas où le titre de la section "Abstract" et le paragraphe sont dans deux contents différents
                 else:
                     abstract = closer_content(pages[0].contents, content).string
                     if abstract is None:
-                        return "N/A"
+                        return "N/A", None
                     else:
-                        return abstract.replace("\n", " ")
+                        return abstract.replace("\n", " "), abstract
             # recherche par formulation d'origine
             elif ("this article" in rm_multiple_spaces(content.string[:75]).lower() and
                   ("present" in content.string[12:75].lower() or "introduce" in content.string[12:75].lower())):
-                return content.string.replace("\n", " ")
-    return "N/A"
+                return content.string.replace("\n", " "), content
+    return "N/A", None
 
 
 def find_references(pages):

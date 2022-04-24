@@ -49,11 +49,12 @@ class TextPreprocessingResult:
     def preprocess(self):
         for p in self._pages:
             p.process_header_footer()
-        
+
         # Compter les colonnes
         second_page = self._pages[1]
         nb_columns = second_page.count_columns()
-        print("NB COL", nb_columns)
+
+        #print("NB COL", nb_columns)
         for p in self._pages:
             p.process_columns(nb_columns)
 

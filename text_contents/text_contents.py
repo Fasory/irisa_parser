@@ -13,7 +13,7 @@ FOOTER_LEN_LIMIT = 110
 APPROX_EQ_LIMIT = 2
 
 def approx_equal(x, y):
-    print(abs(x-y))
+    #print(abs(x-y))
     return abs(x - y) <= APPROX_EQ_LIMIT
 
 def sort_y(contents_lst):
@@ -222,26 +222,26 @@ class TextPageResult:
     def is_centered(self, content):
         mid_x = self.width / 2
         content_center = content.get_center_x()
-        print("center? ", end="")
+        #print("center? ", end="")
         return approx_equal(mid_x, content_center)
 
     def is_on_left(self, content):
         mid_x = self.width / 2
         content_center = content.get_center_x()
-        print("left? ", end="")
+        #print("left? ", end="")
         return content_center <= mid_x
 
     def is_on_right(self, content):
         mid_x = self.width / 2
         content_center = content.get_center_x()
-        print("right? ", end="")
+        #print("right? ", end="")
         return content_center > mid_x
 
     # Si plus de la moitié des contents sont soit à gauche soit à droite du centre de la page, alors il y a 2 colonnes
     def count_columns(self):
         counter = 0
         for c in self._contents:
-            print("...................")
+            #print("...................")
             # Si le content est à gauche ou à droite du centre, on rajouter 1 au compteur
             if (not self.is_centered(c)) and (self.is_on_left(c) or self.is_on_right(c)):
                 counter += 1
