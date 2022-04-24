@@ -11,6 +11,8 @@ MAX_FOOTER_HEIGHT = 100 # si en fonction des marges: 25 # 80
 HEADER_LEN_LIMIT = 150
 FOOTER_LEN_LIMIT = 110
 
+TITLE_LEN_LIMIT = 50
+
 APPROX_EQ_LIMIT = 10
 
 def approx_equal(x, y, lim=APPROX_EQ_LIMIT):
@@ -18,6 +20,26 @@ def approx_equal(x, y, lim=APPROX_EQ_LIMIT):
 
 def sort_y(contents_lst):
     contents_lst.sort(key=lambda c: c.position[1], reverse=True)
+
+def sort_x(contents_lst):
+    contents_lst.sort(key=lambda c: c.position[0])
+
+
+def starts_with_uppercase(s):
+    try:
+        return s.strip()[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    except IndexError:
+        return False
+
+def starts_with_number(s):
+    try:
+        return s.strip()[0] in "0123456789"
+    except IndexError:
+        return False
+
+def string_is_title(s):
+    return len(s) <= TITLE_LEN_LIMIT and (starts_with_uppercase(s) or starts_with_number(s)) and EnglishVocab.instance().check_no_proper_name(s)
+
 
 class TextPageResult:
     """
@@ -167,9 +189,6 @@ class TextPageResult:
 
         self._contents = [c for c in self._contents if not self.is_secondary(c)]
 
-    def process_accents(self):
-        for c in self._contents:
-            c.process_accents()
 
     def is_header(self, content):
         return content.position[1] >= (self._height - MAX_HEADER_HEIGHT) and len(content) <= HEADER_LEN_LIMIT and content.is_short() and (content.starts_with_uppercase() or content.starts_with_number())
@@ -252,37 +271,6 @@ class TextPageResult:
         self._contents = left_contents + right_contents
 
 
-    def vertical_merge(self):
-        new_contents = []
-
-        i = 0
-        while i < len(self._contents):
-            merged = self._contents[i]
-            first_pos = merged.position
-            last_pos = first_pos
-            j = i
-
-            while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
-                next = self._contents[j + 1]
-                merged.vertical_merge(next)
-                last_pos = next.position
-
-                j += 1
-
-            merged.position = (
-                last_pos[0],
-                last_pos[1],
-                first_pos[2],
-                first_pos[3]
-            )
-
-            new_contents.append(merged)
-
-            i = j + 1
-
-        self._contents = new_contents
-
-
 class TextContentResult:
     """
     This class represents a targeted data block of a file.
@@ -305,6 +293,8 @@ class TextContentResult:
         self._alignment = None
         self._first_font_size = None
         self._first_font = None
+
+        self._is_title = False
 
         lines_count = 0
         first_line = True
@@ -378,7 +368,12 @@ class TextContentResult:
         return f"<F={repr(self.major_font)} FS={repr(self.major_font_size)}> {self._position} [{self.width}, {self.height}]\n{repr(self._string)}"
 
     def __str__(self):
-        return f"-----------\n{self._string}-----------"
+        if self._is_title:
+            title_info = " TITLE"
+        else:
+            title_info = ""
+
+        return f"-----------{title_info}\n{self._string}-----------"
 
     def hdistance(self, other_content):
         return self._container.hdistance(other_content.container)
@@ -455,23 +450,66 @@ class TextContentResult:
             .replace("ˆY", "Ŷ").replace("'y", "ý").replace("¨y", "ÿ").replace("`y", "ỳ").replace("ˆy", "ŷ")\
             .replace("ˇr", "ř").replace("ˇS", "Š")
 
+
     def starts_with_uppercase(self):
-        try:
-            return self._string.strip()[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        except IndexError:
-            return False
+        return starts_with_uppercase(self._string)
 
     def starts_with_number(self):
-        try:
-            return self._string.strip()[0] in "0123456789"
-        except IndexError:
-            return False
+        return starts_with_number(self._string)
+
 
     def is_short(self):
         return len(self) <= HEADER_LEN_LIMIT
 
+    def must_split(self):
+        #lines = self._string.splitlines()
+        #if len(lines) <= 1:
+        #    return False
+
+        #l1 = lines.pop(0)
+        #return string_is_title(l1)
+        lines = self._string.splitlines()
+        if len(lines) <= 1:
+            return False
+
+        l1 = lines[0]
+
+        # La première est un titre ET a une police ou taille différente du reste du content
+        return string_is_title(l1) and (self._first_font != self._major_font or self._first_font_size != self._major_font_size)
+
+
+    def split(self):
+        lines = self._string.splitlines(True)
+        l1 = lines.pop(0)
+
+        c1 = copy.deepcopy(self) # première ligne
+        c2 = copy.deepcopy(self) # lignes suivantes
+
+        c1.position = (
+            c1.position[0],
+            c1.position[3] + self._major_font_size, # on remonte le bord inférieur de la première ligne
+            c1.position[2],
+            c1.position[3]
+        )
+
+        c2.position = (
+            c2.position[0],
+            c2.position[1],
+            c2.position[2],
+            c2.position[3] - self._major_font_size # on descend le bord supérieur du content des lignes suivantes
+        )
+
+        c1._string = l1
+        c1._is_title = True
+
+        c2._string = "".join(lines)
+
+        return c1, c2
+
+
     def is_near_vertical(self, other):
         return approx_equal(self.hdistance(other), 0, 2) and\
+            not (self._is_title or other._is_title) and\
             self._major_font == other.major_font and\
             self._major_font_size == other.major_font_size and\
             self.vdistance(other) <= self._major_font_size
