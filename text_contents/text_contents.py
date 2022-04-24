@@ -234,7 +234,6 @@ class TextPageResult:
         content_center = content.get_center_x()
         return content_center > mid_x
 
-
     def process_columns(self):
         # Séparation en 2 listes indépendantes
         left_contents = []
@@ -251,6 +250,7 @@ class TextPageResult:
         sort_y(left_contents)
         sort_y(right_contents)
         self._contents = left_contents + right_contents
+
 
     def vertical_merge(self):
         new_contents = []
