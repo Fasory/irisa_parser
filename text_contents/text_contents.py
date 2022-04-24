@@ -13,8 +13,8 @@ FOOTER_LEN_LIMIT = 110
 
 APPROX_EQ_LIMIT = 10
 
-def approx_equal(x, y):
-    return abs(x - y) <= APPROX_EQ_LIMIT
+def approx_equal(x, y, lim=APPROX_EQ_LIMIT):
+    return abs(x - y) <= lim
 
 def sort_y(contents_lst):
     contents_lst.sort(key=lambda c: c.position[1], reverse=True)
@@ -252,6 +252,36 @@ class TextPageResult:
         sort_y(right_contents)
         self._contents = left_contents + right_contents
 
+    def vertical_merge(self):
+        new_contents = []
+
+        i = 0
+        while i < len(self._contents):
+            merged = self._contents[i]
+            first_pos = merged.position
+            last_pos = first_pos
+            j = i
+
+            while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
+                next = self._contents[j + 1]
+                merged.vertical_merge(next)
+                last_pos = next.position
+
+                j += 1
+
+            merged.position = (
+                last_pos[0],
+                last_pos[1],
+                first_pos[2],
+                first_pos[3]
+            )
+
+            new_contents.append(merged)
+
+            i = j + 1
+
+        self._contents = new_contents
+
 
 class TextContentResult:
     """
@@ -440,15 +470,18 @@ class TextContentResult:
     def is_short(self):
         return len(self) <= HEADER_LEN_LIMIT
 
+    def is_near_vertical(self, other):
+        return approx_equal(self.hdistance(other), 0, 2) and\
+            self._major_font == other.major_font and\
+            self._major_font_size == other.major_font_size and\
+            self.vdistance(other) <= self._major_font_size
+
     def vertical_merge(self, other, splitted_word=False):
-        new = copy.deepcopy(self)
-        new._string += other.string
-        new._position = (
+        self._string += other.string
+        self._position = (
             other.position[0], other.position[1],
             self._position[2], self._position[3]
         )
-
-        return new
 
 
 @unique

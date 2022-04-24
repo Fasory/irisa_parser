@@ -53,6 +53,10 @@ class TextPreprocessingResult:
                 p.process_columns()
             p.process_accents()
 
+            # Séparation titre - texte avant
+
+            p.vertical_merge()
+
             self._contents += p.contents
 
 
