@@ -79,19 +79,19 @@ def restitutionXML(file, processingResult):
     abstract = SubElement(root, "abstract")
     abstract.text = processingResult.abstract
 
-    references = SubElement(root, "references")
-    references.text = processingResult.references
-
     introduction = SubElement(root, "introduction")
     introduction.text = processingResult.introduction
 
     corps = SubElement(root, "corps")
     corps.text = processingResult.body
 
+    discussion = SubElement(root, "discussion")
+    discussion.text = processingResult.discussion
+
     conclusion = SubElement(root, "conclusion")
     conclusion.text = processingResult.conclusion
 
-    discussion = SubElement(root, "discussion")
-    discussion.text = processingResult.discussion
+    biblio = SubElement(root, "biblio")
+    biblio.text = processingResult.references
 
     file.write(minidom.parseString(tostring(root)).toprettyxml(indent="  "))
