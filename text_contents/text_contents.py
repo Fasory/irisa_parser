@@ -1,6 +1,7 @@
 import copy
 from enum import Enum, unique
 from math import floor
+import sys
 from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine, LTAnno
 
 from text_contents.EnglishVocab import EnglishVocab
@@ -10,10 +11,9 @@ MAX_FOOTER_HEIGHT = 100 # si en fonction des marges: 25 # 80
 HEADER_LEN_LIMIT = 150
 FOOTER_LEN_LIMIT = 110
 
-APPROX_EQ_LIMIT = 2
+APPROX_EQ_LIMIT = 10
 
 def approx_equal(x, y):
-    print(abs(x-y))
     return abs(x - y) <= APPROX_EQ_LIMIT
 
 def sort_y(contents_lst):
@@ -222,57 +222,35 @@ class TextPageResult:
     def is_centered(self, content):
         mid_x = self.width / 2
         content_center = content.get_center_x()
-        print("center? ", end="")
         return approx_equal(mid_x, content_center)
 
     def is_on_left(self, content):
         mid_x = self.width / 2
         content_center = content.get_center_x()
-        print("left? ", end="")
         return content_center <= mid_x
 
     def is_on_right(self, content):
         mid_x = self.width / 2
         content_center = content.get_center_x()
-        print("right? ", end="")
         return content_center > mid_x
 
-    # Si plus de la moitié des contents sont soit à gauche soit à droite du centre de la page, alors il y a 2 colonnes
-    def count_columns(self):
-        counter = 0
+
+    def process_columns(self):
+        # Séparation en 2 listes indépendantes
+        left_contents = []
+        right_contents = []
         for c in self._contents:
-            print("...................")
-            # Si le content est à gauche ou à droite du centre, on rajouter 1 au compteur
-            if (not self.is_centered(c)) and (self.is_on_left(c) or self.is_on_right(c)):
-                counter += 1
-        
-        if counter / len(self._contents) >= 0.5:
-            return 2
-        else:
-            return 1
+            if self.is_centered(c):
+                left_contents.append(c)
+            elif self.is_on_right(c):
+                right_contents.append(c)
+            # Par défaut, les contents sont mis à gauche (content qui sont pile au centre par ex)
+            else:
+                left_contents.append(c)
 
-    def process_columns(self, nb_columns):
-        if nb_columns == 2:
-            # Séparation en 2 listes indépendantes
-            left_contents = []
-            right_contents = []
-            for c in self._contents:
-                if self.is_centered(c):
-                    left_contents.append(c)
-                elif self.is_on_right(c):
-                    right_contents.append(c)
-                # Par défaut, les contents sont mis à gauche (content qui sont pile au centre par ex)
-                else:
-                    left_contents.append(c)
-
-            sort_y(left_contents)
-            sort_y(right_contents)
-            self._contents = left_contents + right_contents
-        else:
-            sort_y(self._contents)
-
-    def sort_y(self):
-        self._contents.sort(key=lambda c: c.position[1], reverse=True)
+        sort_y(left_contents)
+        sort_y(right_contents)
+        self._contents = left_contents + right_contents
 
 
 class TextContentResult:
@@ -448,10 +426,16 @@ class TextContentResult:
             .replace("ˇr", "ř").replace("ˇS", "Š")
 
     def starts_with_uppercase(self):
-        return self._string.strip()[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        try:
+            return self._string.strip()[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        except IndexError:
+            return False
 
     def starts_with_number(self):
-        return self._string.strip()[0] in "0123456789"
+        try:
+            return self._string.strip()[0] in "0123456789"
+        except IndexError:
+            return False
 
     def is_short(self):
         return len(self) <= HEADER_LEN_LIMIT

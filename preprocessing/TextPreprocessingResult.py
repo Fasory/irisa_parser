@@ -49,24 +49,24 @@ class TextPreprocessingResult:
     def preprocess(self):
         for p in self._pages:
             p.process_header_footer()
-        
-        # Compter les colonnes
-        second_page = self._pages[1]
-        nb_columns = second_page.count_columns()
-        print("NB COL", nb_columns)
-        for p in self._pages:
-            p.process_columns(nb_columns)
-
-        for p in self._pages:
+            if p.number > 1:
+                p.process_columns()
             p.process_accents()
 
             self._contents += p.contents
+
 
     def print_result(self):
         print("APRES PREPROC\n")
         print("#####################", self._filename, "#####################")
         for p in self._pages:
             print(p)
+
+    def repr_result(self):
+        print("APRES PREPROC\n")
+        print("#####################", self._filename, "#####################")
+        for p in self._pages:
+            print(repr(p))
 
     @property
     def filename(self):
