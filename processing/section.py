@@ -20,15 +20,19 @@ class Section(Enum):
         else:
             self._next = self.value+1
 
-    def create_ananymous(self):
-        return self.create_ananymous(self._next)
-
-    def create_ananymous(self, next_r):
+    def create_ananymous(self, next_r=None):
         section = self.ANONYMOUS
-        section._next = next_r
+        if next_r is None:
+            section._next = self._next
+        else:
+            section._next = next_r
         return section
 
     def match_string(self, content, major_font, major_font_size):
+        if "." in content.string[:5]:
+            ls = [elt for elt in content.string[:5].split(" ") if elt != ""]
+            if len(ls) < 3 and len(ls[0].split(".")) == 2:
+                return True
         if self == self.TITLE:
             return content.major_font_size > major_font_size
         elif self == self.AUTHOR:
@@ -37,13 +41,17 @@ class Section(Enum):
             return content.major_font == major_font and content.major_font_size == major_font_size or \
                 content.major_font_size >= major_font_size*0.75 and content.major_font != major_font
         elif self == self.INTRODUCTION:
-            return content.major_font == major_font and content.major_font_size == major_font_size
+            return content.major_font == major_font and content.major_font_size == major_font_size or \
+                   content.font_of_first_words == major_font and content.font_size_of_first_words == major_font_size
         elif self == self.BODY:
-            return content.major_font == major_font and content.major_font_size == major_font_size
+            return content.major_font == major_font and content.major_font_size == major_font_size or \
+                   content.font_of_first_words == major_font and content.font_size_of_first_words == major_font_size
         elif self == self.DISCUSSION:
-            return content.major_font == major_font and content.major_font_size == major_font_size
+            return content.major_font == major_font and content.major_font_size == major_font_size or \
+                   content.font_of_first_words == major_font and content.font_size_of_first_words == major_font_size
         elif self == self.CONCLUSION:
-            return content.major_font == major_font and content.major_font_size == major_font_size
+            return content.major_font == major_font and content.major_font_size == major_font_size or \
+                   content.font_of_first_words == major_font and content.font_size_of_first_words == major_font_size
         elif self == self.REFERENCE:
             return content.major_font == major_font and content.major_font_size == major_font_size or \
                 content.major_font_size >= major_font_size*0.75 and content.major_font != major_font
@@ -128,25 +136,28 @@ def section_extraction(result, text_processing_result, cursor, first_research, l
     else:
         contents = result.contents[result.contents.index(cursor)+1:]
     for content in contents:
-        print("STATE : ", current_section)
+        print("---------------------------------")
+        print(current_section)
+        print(content.fonts)
+        print(content.font_sizes)
+        print(result.major_font)
+        print(result.major_font_size)
         print(content.string)
         if current_section is not None and current_section.match_string(content,
                                                                         result.major_font,
                                                                         result.major_font_size):
             buffer_section += content.string
-            print("MATCH : YES")
         else:
             if current_section is None:
                 break
             next_section, insert_in_buffer = current_section.find_next_section_with(content, result.major_font, result.major_font_size)
-            print("MATCH : NO")
             if next_section is not None:
-                print("NEW SECTION :", next_section)
+                print("NEXT :", next_section)
                 if next_section != current_section:
                     current_section.flush_buffer(buffer_section, text_processing_result)
+                    if limit_research == next_section:
+                        break
                     buffer_section = ""
                 if insert_in_buffer:
                     buffer_section += content.string
-                if limit_research == next_section:
-                    break
                 current_section = next_section
