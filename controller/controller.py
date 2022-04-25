@@ -17,6 +17,7 @@ import os
 import sys
 import argparse
 from alive_progress import alive_bar
+from simple_term_menu import TerminalMenu
 
 
 # import sys: Ce module donne accès à tous les arguments de ligne de commande
@@ -50,55 +51,53 @@ def controler():
         sys.exit("error -> you do not have write AND read permissions")
 
     PDFPath = []
-    cptNbFile = 0
     # On vérifie si le fichier a bien les droits de lecture ET d'écriture
     # Ajout de l'extension .pdf
 
     for file in listdir(pathDirectory):
         if os.access(os.path.join(pathDirectory, file), os.F_OK | os.R_OK | os.W_OK) and file[-4:] == ".pdf":
             PDFPath.append(os.path.join(pathDirectory, file))
-            cptNbFile = cptNbFile + 1
 
-    fileToConvert = []
-    while True:
-        # impression du menu après qu'on est vérifié que le répertoire existe
-        print('\n⇊ Choose files to convert ⇊ \n')
-        for i in range(cptNbFile):
-            print(i, '-- ', PDFPath[i])
-        print(cptNbFile + 1, '-- All')
-        print(cptNbFile + 2, '-- Exit')
-        print("")
-        print(cptNbFile + 3, '-- Parse')
-        option = int(input('Enter your choice: '))
-        #print("opt", option)
+    if final_stat.optionsList[".txt"] == False and final_stat.optionsList[".xml"] == False:
+        options_opt_menu = ["XML", "Texte"]
+        options_menu = TerminalMenu(options_opt_menu, multi_select=True, show_multi_select_hint=True, title="Choisir les options")
+        options_menu_index = options_menu.show()
+        for option in options_menu_index :
+            if option == 0 :
+                final_stat.addOption(".xml", True)
+                continue
+            if option == 1 :
+                final_stat.addOption(".txt", True)
+                continue
 
-        if option < cptNbFile:
-            #print(option, PDFPath[option])
-            fileToConvert.append(PDFPath[option])
+    options = ["Choisir les fichiers à garder", "Fermer le programme"]
+    main_menu = TerminalMenu(options)
+    menu_menu_index = main_menu.show()
 
-        elif option == cptNbFile + 1:
-            #fileToConvert.append(os.path.join(pathDirectory, file))
-            fileToConvert = PDFPath
+    if menu_menu_index == 1:
+        exit()
+    if menu_menu_index == 0:
+        files_options = PDFPath
+        files_options.append(" Tous les fichiers ")
+        select_menu = TerminalMenu(files_options, multi_select=True, show_multi_select_hint=True)
+        select_menu_index = select_menu.show()
 
-        elif option == cptNbFile + 2:
-            print(
-                '\nThanks for using our parser, \n\nJulie-Amélie BIDAULT,\nClément BOUQUET,\nYoann DEWILDE,\nMewen BERTHELOT')
-            exit()
-        elif option == cptNbFile + 3:
-            break
-        else:
-            print('Invalid option. Please enter a number between 0 and', cptNbFile + 3, '.')
+        if select_menu_index[-1] == len(PDFPath) - 1:
+            launch(final_stat, PDFPath)
+        else :
+            newPath = []
+            for index in select_menu_index :
+                newPath.append(PDFPath[index])
+            launch(final_stat, newPath)
 
-        #print(fileToConvert)
-
+def launch(final_stat, PDFPath):
     # Remove du dossier et son contenu
-    if (os.path.exists(final_stat.output)):
+    if os.path.exists(final_stat.output):
         shutil.rmtree(final_stat.output)
 
     # Conversion en txt
-
-    with alive_bar(len(fileToConvert)) as bar:
-        for path in fileToConvert:
+    with alive_bar(len(PDFPath)) as bar:
+        for path in PDFPath:
             bar.text(path)
             extraction.run(path, final_stat)
             bar()
