@@ -462,12 +462,6 @@ class TextContentResult:
         return len(self) <= HEADER_LEN_LIMIT
 
     def must_split(self):
-        #lines = self._string.splitlines()
-        #if len(lines) <= 1:
-        #    return False
-
-        #l1 = lines.pop(0)
-        #return string_is_title(l1)
         lines = self._string.splitlines()
         if len(lines) <= 1:
             return False
