@@ -233,7 +233,7 @@ def find_abstract(pages):
                     if abstract is None:
                         return "N/A", None
                     else:
-                        return abstract.replace("\n", " "), abstract
+                        return abstract.replace("\n", " "), content
             # recherche par formulation d'origine
             elif ("this article" in rm_multiple_spaces(content.string[:75]).lower() and
                   ("present" in content.string[12:75].lower() or "introduce" in content.string[12:75].lower())):

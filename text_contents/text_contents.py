@@ -293,6 +293,10 @@ class TextContentResult:
         self._alignment = None
         self._first_font_size = None
         self._first_font = None
+        self._font_size_of_first_chars = {}
+        self._font_of_first_chars = {}
+        nb_limit_chars = 15
+        nb_chars = 0
 
         self._is_title = False
 
@@ -323,6 +327,9 @@ class TextContentResult:
                 if first_line:
                     self._first_font_size = line.size
                     self._first_font = line.fontname
+                if first_line:
+                    self._font_size_of_first_chars[char.size] = 1
+                    self._font_of_first_chars[char.fontname] = 1
                 first_line = False
             elif isinstance(line, LTTextLine):
                 for char in line:
@@ -334,21 +341,33 @@ class TextContentResult:
                             self._fonts[char.fontname] = 0
                         self._fonts[char.fontname] += 1
                         if first_line:
-                            if self._first_font_size == None and self._first_font == None:
+                            if self._first_font_size is None and self._first_font is None:
                                 self._first_font_size = char.size
                                 self._first_font = char.fontname
                             elif self._first_font_size != char.size or self._first_font != char.fontname:
                                 self._first_font_size = None
                                 self._first_font = None
                                 first_line = False
+                        if nb_chars < nb_limit_chars:
+                            if char.size not in self._font_size_of_first_chars.keys():
+                                self._font_size_of_first_chars[char.size] = 0
+                            self._font_size_of_first_chars[char.size] += 1
+                            if char.fontname not in self._font_of_first_chars.keys():
+                                self._font_of_first_chars[char.fontname] = 0
+                            self._font_of_first_chars[char.fontname] += 1
+                            nb_chars += 1
+                nb_chars = nb_limit_chars
                 first_line = False
+        self._font_size_of_first_chars = round(max(self._font_size_of_first_chars,
+                                                   key=self._font_size_of_first_chars.get))
+        self._font_of_first_chars = max(self._font_of_first_chars, key=self._font_of_first_chars.get)
 
         self._major_font = max(self._fonts, key=self._fonts.get)
         self._major_font_size = round(max(self._font_sizes, key=self._font_sizes.get))
 
         char_height = self.major_font_size
         self._line_spacing = (self.height - lines_count *
-                              char_height) / (lines_count)
+                              char_height) / lines_count
 
     @property
     def major_font(self):
@@ -357,6 +376,14 @@ class TextContentResult:
     @property
     def major_font_size(self):
         return self._major_font_size
+
+    @property
+    def font_size_of_first_words(self):
+        return self._font_size_of_first_chars
+
+    @property
+    def font_of_first_words(self):
+        return self._font_of_first_chars
 
     def __len__(self):
         return len(self._string)
