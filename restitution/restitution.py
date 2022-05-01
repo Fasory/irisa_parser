@@ -75,6 +75,8 @@ def restitutionXML(file, processingResult):
             name.text = author.name
             mail = SubElement(auth, "mail")
             mail.text = author.mail
+            affiliation = SubElement(auth, "affiliation")
+            affiliation.text = author.affiliation
 
     abstract = SubElement(root, "abstract")
     abstract.text = processingResult.abstract
