@@ -15,9 +15,8 @@ class FinalStat:
     @property
     def optionsList(self):
         for option in self._options.values():
-            if (option):
+            if option:
                 return self._options
-        self._options["text"] = True
         return self._options
 
     @property
