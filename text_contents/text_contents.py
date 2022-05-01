@@ -328,8 +328,8 @@ class TextContentResult:
                     self._first_font_size = line.size
                     self._first_font = line.fontname
                 if first_line:
-                    self._font_size_of_first_chars[char.size] = 1
-                    self._font_of_first_chars[char.fontname] = 1
+                    self._font_size_of_first_chars[line.size] = 1
+                    self._font_of_first_chars[line.fontname] = 1
                 first_line = False
             elif isinstance(line, LTTextLine):
                 for char in line:

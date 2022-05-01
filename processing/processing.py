@@ -9,16 +9,16 @@ from .TextProcessingResult import TextProcessingResult, Author
 from processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces, clear_beginning_line, \
     hard_clear_line, percent_proper_names, under_contents, build_mail, build_real_authors, match, \
     research_match_by_first_letter, column_extraction, default_extraction
-from .section import section_extraction, Section
+from .section import section_extraction
 
 
 def run(result, final_stat):
     text_processing_result = TextProcessingResult(result.filename)
     text_processing_result.title, content_title = find_title(result.pages)
     text_processing_result.authors = link_mails(find_authors(result.pages, content_title), find_mails(result.pages))
-    text_processing_result.abstract, content_abstract = find_abstract(result.pages)
-    section_extraction(result, text_processing_result, content_abstract, Section.INTRODUCTION, Section.REFERENCE)
-    text_processing_result.references = find_references(result.pages)
+    #text_processing_result.abstract, content_abstract = find_abstract(result.pages)
+    section_extraction(result, text_processing_result)
+    #text_processing_result.references = find_references(result.pages)
     restitution.run(text_processing_result, final_stat)
 
 
