@@ -34,18 +34,19 @@ def controler():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', "--text", action='store_true', dest=".txt", help="select plain text result format")
     parser.add_argument('-x', "--xml", dest=".xml", action='store_true', help="select xml result format")
+    parser.add_argument('-b', "--bypass", dest="#", action='store_true', help="bypass menu")
     parser.add_argument('input', help="the path of the input folder containing the pdf files")
     store = parser.parse_args()
 
     final_stat = FinalStat(vars(store)["input"], vars(store)["input"] + "/out")
     for key in vars(store):
-        if (key == "input"):
+        if key == "input":
             continue
         final_stat.addOption(key, vars(store)[key])
 
     pathDirectory = final_stat.input
     # On vérifie si le répertoire entré existe
-    if os.path.exists(pathDirectory) != True:
+    if not os.path.exists(pathDirectory):
         sys.exit("error -> <pathDirectory> does not exist")
     if not os.access(pathDirectory, os.F_OK | os.R_OK | os.W_OK):
         sys.exit("error -> you do not have write AND read permissions")

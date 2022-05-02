@@ -61,7 +61,7 @@ def restitutionText(file, processingResult):
 
 def restitutionXML(file, processingResult):
     root = Element('article')
-    preamble = SubElement(root, "preambule")
+    preamble = SubElement(root, "preamble")
     preamble.text = processingResult.original_file_name
 
     title = SubElement(root, "titre")
@@ -75,6 +75,8 @@ def restitutionXML(file, processingResult):
             name.text = author.name
             mail = SubElement(auth, "mail")
             mail.text = author.mail
+            affiliation = SubElement(auth, "affiliation")
+            affiliation.text = author.affiliation
 
     abstract = SubElement(root, "abstract")
     abstract.text = processingResult.abstract

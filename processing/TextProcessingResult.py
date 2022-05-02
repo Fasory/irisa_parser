@@ -112,12 +112,10 @@ class TextProcessingResult:
 
 class Author:
 
-    def __init__(self, name, mail=None):
+    def __init__(self, name, mail="N/A", affiliation="N/A"):
         self._name = name
-        if mail is None:
-            self._mail = "N/A"
-        else:
-            self._mail = mail
+        self._mail = mail
+        self._affiliation = affiliation
 
     @property
     def name(self):
@@ -128,6 +126,11 @@ class Author:
     def mail(self):
         """Get the mail"""
         return self._mail
+
+    @property
+    def affiliation(self):
+        """Get the affiliation"""
+        return self._affiliation
 
     @name.setter
     def name(self, value):
