@@ -57,37 +57,37 @@ def controler():
     if final_stat.optionsList[".txt"] == False and final_stat.optionsList[".xml"] == False:
         options = [
             inquirer.Checkbox('options',
-                              message="Choix des options",
-                              choices=['XML', 'Texte'],
+                              message="Choix des options (ESPACE pour sélectionner, ENTER pour valider)",
+                              choices=[('XML', 0), ('Texte',1)],
+                              validate=True,
                               ),
         ]
         optionList = inquirer.prompt(options)
-        print(optionList.get("options"))
+        print(optionList)
         for option in optionList["options"]:
-            if option == 'XML':
+            if option == 0:
                 final_stat.addOption(".xml", True)
                 continue
-            if option == 'Texte':
+            if option == 1:
                 final_stat.addOption(".txt", True)
                 continue
 
     convert = [
         inquirer.List('convert',
                       message="",
-                      choices=['Choisir les documents à convertir', 'Quitter l\'application'],
+                      choices=[('Choisir les documents à convertir', 0), ('Quitter l\'application', 1)],
                       ),
     ]
     selectionConvert = inquirer.prompt(convert)
 
-    if selectionConvert.keys == "Quitter l\'application":
+    if selectionConvert.get("convert") == 1:
         exit()
-    if selectionConvert["convert"] == "Choisir les documents à convertir":
+    if selectionConvert.get("convert") == 0:
         files_options = PDFPath
-        files_options.append(" Tous les fichiers ")
-
+        files_options.append("Tous les fichiers ")
         filePrompt = [
             inquirer.Checkbox('files',
-                              message="Choix des fichiers",
+                              message="Choix des fichiers (ESPACE pour sélectionner, ENTER pour valider)",
                               choices=files_options,
                               ),
         ]
