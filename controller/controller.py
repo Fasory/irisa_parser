@@ -17,10 +17,7 @@ import os
 import sys
 import argparse
 from alive_progress import alive_bar
-from simple_term_menu import TerminalMenu
 import inquirer
-
-# import sys: Ce module donne accès à tous les arguments de ligne de commande
 
 
 def run():
@@ -28,8 +25,6 @@ def run():
 
 
 def controler():
-    # On vérifie qu'il n'y a qu'un seul et unique argument
-
     # Gestion des options
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', "--text", action='store_true', dest=".txt", help="select plain text result format")
@@ -67,20 +62,20 @@ def controler():
                               ),
         ]
         optionList = inquirer.prompt(options)
-
+        print(optionList.get("options"))
         for option in optionList["options"]:
-            if option == 'XML' :
+            if option == 'XML':
                 final_stat.addOption(".xml", True)
                 continue
-            if option == 'Texte' :
+            if option == 'Texte':
                 final_stat.addOption(".txt", True)
                 continue
 
     convert = [
         inquirer.List('convert',
-                          message="",
-                          choices=['Choisir les documents à convertir', 'Quitter l\'application'],
-                          ),
+                      message="",
+                      choices=['Choisir les documents à convertir', 'Quitter l\'application'],
+                      ),
     ]
     selectionConvert = inquirer.prompt(convert)
 
@@ -98,11 +93,12 @@ def controler():
         ]
         selectFile = inquirer.prompt(filePrompt)
         print(selectFile.get("files"))
-        if selectFile.get("files")[-1] == len(PDFPath) - 1:
+        if selectFile.get("files")[-1] == files_options[-1]:
             launch(final_stat, PDFPath)
-        else :
+        else:
             newPath = selectFile.get("files")
             launch(final_stat, newPath)
+
 
 def launch(final_stat, PDFPath):
     # Remove du dossier et son contenu
