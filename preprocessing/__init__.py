@@ -8,7 +8,7 @@ precedes the processing module.
 """
 
 # info
-__version__ = "0.1"
+__version__ = "1.0"
 __author__ = "Yoann DEWILDE"
 
 from .preprocessing import run
