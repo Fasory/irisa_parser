@@ -17,7 +17,8 @@ import os
 import sys
 import argparse
 from alive_progress import alive_bar
-
+from simple_term_menu import TerminalMenu
+import inquirer
 
 # import sys: Ce module donne accès à tous les arguments de ligne de commande
 
@@ -58,43 +59,50 @@ def controler():
         if os.access(os.path.join(pathDirectory, file), os.F_OK | os.R_OK | os.W_OK) and file[-4:] == ".pdf":
             PDFPath.append(os.path.join(pathDirectory, file))
 
-    if final_stat.optionsList["#"]:
-        launch(final_stat, PDFPath)
-    else:
-        from simple_term_menu import TerminalMenu
-        if final_stat.optionsList[".txt"] == False and final_stat.optionsList[".xml"] == False:
-            options_opt_menu = ["XML", "Texte"]
-            options_menu = TerminalMenu(options_opt_menu, multi_select=True, show_multi_select_hint=True,
-                                        title="Choisir les options")
-            options_menu_index = options_menu.show()
-            for option in options_menu_index:
-                if option == 0:
-                    final_stat.addOption(".xml", True)
-                    continue
-                if option == 1:
-                    final_stat.addOption(".txt", True)
-                    continue
+    if final_stat.optionsList[".txt"] == False and final_stat.optionsList[".xml"] == False:
+        options = [
+            inquirer.Checkbox('options',
+                              message="Choix des options",
+                              choices=['XML', 'Texte'],
+                              ),
+        ]
+        optionList = inquirer.prompt(options)
 
-        options = ["Choisir les fichiers à garder", "Fermer le programme"]
-        main_menu = TerminalMenu(options)
-        menu_menu_index = main_menu.show()
+        for option in optionList["options"]:
+            if option == 'XML' :
+                final_stat.addOption(".xml", True)
+                continue
+            if option == 'Texte' :
+                final_stat.addOption(".txt", True)
+                continue
 
-        if menu_menu_index == 1:
-            exit()
-        if menu_menu_index == 0:
-            files_options = PDFPath
-            files_options.append(" Tous les fichiers ")
-            select_menu = TerminalMenu(files_options, multi_select=True, show_multi_select_hint=True)
-            select_menu_index = select_menu.show()
+    convert = [
+        inquirer.List('convert',
+                          message="",
+                          choices=['Choisir les documents à convertir', 'Quitter l\'application'],
+                          ),
+    ]
+    selectionConvert = inquirer.prompt(convert)
 
-            if select_menu_index[-1] == len(PDFPath) - 1:
-                launch(final_stat, PDFPath)
-            else:
-                newPath = []
-                for index in select_menu_index:
-                    newPath.append(PDFPath[index])
-                launch(final_stat, newPath)
+    if selectionConvert.keys == "Quitter l\'application":
+        exit()
+    if selectionConvert["convert"] == "Choisir les documents à convertir":
+        files_options = PDFPath
+        files_options.append(" Tous les fichiers ")
 
+        filePrompt = [
+            inquirer.Checkbox('files',
+                              message="Choix des fichiers",
+                              choices=files_options,
+                              ),
+        ]
+        selectFile = inquirer.prompt(filePrompt)
+        print(selectFile.get("files"))
+        if selectFile.get("files")[-1] == len(PDFPath) - 1:
+            launch(final_stat, PDFPath)
+        else :
+            newPath = selectFile.get("files")
+            launch(final_stat, newPath)
 
 def launch(final_stat, PDFPath):
     # Remove du dossier et son contenu
