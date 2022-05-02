@@ -17,9 +17,7 @@ import os
 import sys
 import argparse
 from alive_progress import alive_bar
-
-
-# import sys: Ce module donne accès à tous les arguments de ligne de commande
+import inquirer
 
 
 def run():
@@ -27,8 +25,6 @@ def run():
 
 
 def controler():
-    # On vérifie qu'il n'y a qu'un seul et unique argument
-
     # Gestion des options
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', "--text", action='store_true', dest=".txt", help="select plain text result format")
@@ -58,41 +54,59 @@ def controler():
         if os.access(os.path.join(pathDirectory, file), os.F_OK | os.R_OK | os.W_OK) and file[-4:] == ".pdf":
             PDFPath.append(os.path.join(pathDirectory, file))
 
-    if final_stat.optionsList["#"]:
-        launch(final_stat, PDFPath)
-    else:
-        from simple_term_menu import TerminalMenu
-        if final_stat.optionsList[".txt"] == False and final_stat.optionsList[".xml"] == False:
-            options_opt_menu = ["XML", "Texte"]
-            options_menu = TerminalMenu(options_opt_menu, multi_select=True, show_multi_select_hint=True,
-                                        title="Choisir les options")
-            options_menu_index = options_menu.show()
-            for option in options_menu_index:
+    if final_stat.optionsList[".txt"] == False and final_stat.optionsList[".xml"] == False:
+
+        optionsList = {"options": []}
+        while len(optionsList.get("options")) == 0:
+            options = [
+                inquirer.Checkbox('options',
+                                  message="Choix des options (ESPACE pour sélectionner, ENTER pour valider)",
+                                  choices=[('XML', 0), ('Texte', 1)],
+                                  ),
+            ]
+            optionsList = inquirer.prompt(options)
+
+
+            if len(optionsList.get("options")) == 0:
+                print("\033[93m /!\ Selection d'options vides, appuyez sur ENTER pour selectionner une ou plusieurs options")
+                continue
+
+
+            for option in optionsList.get("options"):
                 if option == 0:
                     final_stat.addOption(".xml", True)
-                    continue
                 if option == 1:
                     final_stat.addOption(".txt", True)
-                    continue
 
-        options = ["Choisir les fichiers à garder", "Fermer le programme"]
-        main_menu = TerminalMenu(options)
-        menu_menu_index = main_menu.show()
 
-        if menu_menu_index == 1:
-            exit()
-        if menu_menu_index == 0:
-            files_options = PDFPath
-            files_options.append(" Tous les fichiers ")
-            select_menu = TerminalMenu(files_options, multi_select=True, show_multi_select_hint=True)
-            select_menu_index = select_menu.show()
 
-            if select_menu_index[-1] == len(PDFPath) - 1:
+    convert = [
+        inquirer.List('convert',
+                      message="",
+                      choices=[('Choisir les documents à convertir', 0), ('Quitter l\'application', 1)],
+                      ),
+    ]
+    selectionConvert = inquirer.prompt(convert)
+
+    if selectionConvert.get("convert") == 1:
+        exit()
+    if selectionConvert.get("convert") == 0:
+        selectFile = {"files": []}
+        while len(selectFile.get('files')) == 0:
+            filePrompt = [
+                inquirer.Checkbox('files',
+                                  message="Choix des fichiers (ESPACE pour sélectionner, ENTER pour valider)",
+                                  choices=PDFPath + ["Tous les fichiers"],
+                                  ),
+            ]
+            selectFile = inquirer.prompt(filePrompt)
+            if len(selectFile.get("files")) == 0:
+                print("\033[93m /!\ Selection de fichiers vide, appuyez sur ENTER pour selectionner un ou des fichiers")
+                continue
+            if selectFile.get("files")[-1] == "Tous les fichiers":
                 launch(final_stat, PDFPath)
             else:
-                newPath = []
-                for index in select_menu_index:
-                    newPath.append(PDFPath[index])
+                newPath = selectFile.get("files")
                 launch(final_stat, newPath)
 
 
