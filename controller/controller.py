@@ -55,22 +55,30 @@ def controler():
             PDFPath.append(os.path.join(pathDirectory, file))
 
     if final_stat.optionsList[".txt"] == False and final_stat.optionsList[".xml"] == False:
-        options = [
-            inquirer.Checkbox('options',
-                              message="Choix des options (ESPACE pour sélectionner, ENTER pour valider)",
-                              choices=[('XML', 0), ('Texte',1)],
-                              validate=True,
-                              ),
-        ]
-        optionList = inquirer.prompt(options)
-        print(optionList)
-        for option in optionList["options"]:
-            if option == 0:
-                final_stat.addOption(".xml", True)
+
+        optionsList = {"options": []}
+        while len(optionsList.get("options")) == 0:
+            options = [
+                inquirer.Checkbox('options',
+                                  message="Choix des options (ESPACE pour sélectionner, ENTER pour valider)",
+                                  choices=[('XML', 0), ('Texte', 1)],
+                                  ),
+            ]
+            optionsList = inquirer.prompt(options)
+
+
+            if len(optionsList.get("options")) == 0:
+                print("\033[93m /!\ Selection d'options vides, appuyez sur ENTER pour selectionner une ou plusieurs options")
                 continue
-            if option == 1:
-                final_stat.addOption(".txt", True)
-                continue
+
+
+            for option in optionsList.get("options"):
+                if option == 0:
+                    final_stat.addOption(".xml", True)
+                if option == 1:
+                    final_stat.addOption(".txt", True)
+
+
 
     convert = [
         inquirer.List('convert',
@@ -83,21 +91,23 @@ def controler():
     if selectionConvert.get("convert") == 1:
         exit()
     if selectionConvert.get("convert") == 0:
-        files_options = PDFPath
-        files_options.append("Tous les fichiers ")
-        filePrompt = [
-            inquirer.Checkbox('files',
-                              message="Choix des fichiers (ESPACE pour sélectionner, ENTER pour valider)",
-                              choices=files_options,
-                              ),
-        ]
-        selectFile = inquirer.prompt(filePrompt)
-        print(selectFile.get("files"))
-        if selectFile.get("files")[-1] == files_options[-1]:
-            launch(final_stat, PDFPath)
-        else:
-            newPath = selectFile.get("files")
-            launch(final_stat, newPath)
+        selectFile = {"files": []}
+        while len(selectFile.get('files')) == 0:
+            filePrompt = [
+                inquirer.Checkbox('files',
+                                  message="Choix des fichiers (ESPACE pour sélectionner, ENTER pour valider)",
+                                  choices=PDFPath + ["Tous les fichiers"],
+                                  ),
+            ]
+            selectFile = inquirer.prompt(filePrompt)
+            if len(selectFile.get("files")) == 0:
+                print("\033[93m /!\ Selection de fichiers vide, appuyez sur ENTER pour selectionner un ou des fichiers")
+                continue
+            if selectFile.get("files")[-1] == "Tous les fichiers":
+                launch(final_stat, PDFPath)
+            else:
+                newPath = selectFile.get("files")
+                launch(final_stat, newPath)
 
 
 def launch(final_stat, PDFPath):
