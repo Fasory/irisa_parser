@@ -39,8 +39,9 @@ class TextPreprocessingResult:
 
         self._contents = []
 
-        self.preprocess()
         self.compute_fonts()
+        self.preprocess2()
+
 
     def compute_fonts(self):
         fonts = {}
@@ -115,7 +116,7 @@ class TextPreprocessingResult:
 
     def preprocess(self):
         for p in self._pages:
-            p.process_header_footer()
+            p.process_footer()
             if p.number > 1:
                 p.process_columns()
 
@@ -129,17 +130,47 @@ class TextPreprocessingResult:
         self.vertical_merge()
 
 
-    def print_result(self):
-        print("APRES PREPROC\n")
+    def preprocess2(self, debug=False):
+        for p in self._pages:
+            p.vertical_merge()
+            p.process_footer(self._major_font, self._major_font_size, debug)
+            if p.number > 1:
+                p.process_columns()
+
+            self._contents += p.contents
+
+        self.process_accents()
+
+        # Séparation titre - texte avant
+        self.separate_titles()
+
+        self.vertical_merge()
+
+
+    def print_pages(self):
+        print("APRES PREPROC: pages\n")
         print("#####################", self._filename, "#####################")
         for p in self._pages:
             print(p)
 
-    def repr_result(self):
-        print("APRES PREPROC\n")
+    def repr_pages(self):
+        print("APRES PREPROC: pages\n")
         print("#####################", self._filename, "#####################")
         for p in self._pages:
             print(repr(p))
+
+    
+    def print_result(self):
+        print("APRES PREPROC: contents\n")
+        print("#####################", self._filename, "#####################")
+        for c in self._contents:
+            print(c)
+
+    def repr_result(self):
+        print("APRES PREPROC: contents\n")
+        print("#####################", self._filename, "#####################")
+        for c in self._contents:
+            print(repr(c))
 
     @property
     def filename(self):
