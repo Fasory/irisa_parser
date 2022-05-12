@@ -18,11 +18,9 @@ def run(path, final_stat):
     extracted = extraction(path)
     extracted.compute_fonts()
     #print("APRES EXTRACTION\n")
-    # print("#####################", path, "#####################")
-    # for p in extracted.pages:
-    #    print("-------AUTRE PAGE-------------")
-    #    for c in p.contents:
-    #        print("CONTENT\n", c)
+    #print("#####################", path, "#####################")
+    #for p in extracted.pages:
+    #    print(p)
 
     preprocessing.run(extracted, final_stat)
 

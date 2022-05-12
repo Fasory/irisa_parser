@@ -1,7 +1,7 @@
 import copy
 from enum import Enum, unique
-from math import floor
-import sys
+import re
+
 from pdfminer.layout import LTTextContainer, LTTextLineHorizontal, LTTextLineVertical, LTChar, LTTextLine, LTAnno
 
 from text_contents.EnglishVocab import EnglishVocab
@@ -9,7 +9,8 @@ from text_contents.EnglishVocab import EnglishVocab
 MAX_HEADER_HEIGHT = 70 #70
 MAX_FOOTER_HEIGHT = 100 # si en fonction des marges: 25 # 80
 HEADER_LEN_LIMIT = 150
-FOOTER_LEN_LIMIT = 110
+FOOTER_LEN_LIMIT = 80
+FOOTER_LEN_LIMIT_SHORTEST = 50 # 50
 
 TITLE_LEN_LIMIT = 50
 
@@ -136,7 +137,7 @@ class TextPageResult:
         return s
 
     def __str__(self):
-        s = "-----------PAGE-------------\n"
+        s = f"-----------PAGE {self.number} -------------\n"
         s += f"{self._width}x{self._height}\n"
         s += f"Margin: {self._top_margin_size}\n"
         s += f"FONT: {self.major_font}: {self.major_font_size}\n"
@@ -175,9 +176,20 @@ class TextPageResult:
                 proper.append(content)
         return proper
 
+    def remove_contents(self, contents_to_remove):
+        for c in contents_to_remove:
+            self._contents.remove(c)
+
     def is_secondary(self, content):
         """Check if the content is an annotation or anything else that must NOT be restituted"""
         return content.major_font != self.major_font or content.major_font_size != self.major_font_size
+
+    @staticmethod
+    def is_in_major_font(content, doc_major_font, doc_major_size):
+        #print("MF: ", self.major_font, ", F: ", content.major_font)
+        #print("MS: ", self.major_font_size, ", S: ", content.major_font_size)
+        return content.major_font == doc_major_font and content.major_font_size == doc_major_size
+
 
     def delete_useless_contents(self):
         """Delete contents that must NOT be restituted (such as annotations)"""
@@ -190,15 +202,103 @@ class TextPageResult:
         self._contents = [c for c in self._contents if not self.is_secondary(c)]
 
 
-    def is_header(self, content):
-        return content.position[1] >= (self._height - MAX_HEADER_HEIGHT) and len(content) <= HEADER_LEN_LIMIT and content.is_short() and (content.starts_with_uppercase() or content.starts_with_number())
+    def vertical_merge(self):
+        new_contents = []
 
-    def is_footer(self, content):
+        i = 0
+        while i < len(self._contents):
+            merged = self._contents[i]
+            first_pos = merged.position
+            last_pos = first_pos
+            j = i
+
+            while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
+                next = self._contents[j + 1]
+                merged.vertical_merge(next)
+                last_pos = next.position
+
+                j += 1
+
+            merged.position = (
+                last_pos[0],
+                last_pos[1],
+                first_pos[2],
+                first_pos[3]
+            )
+
+            new_contents.append(merged)
+
+            i = j + 1
+
+        self._contents = new_contents
+
+
+    def is_header(self, content):
+        return len(content) <= HEADER_LEN_LIMIT and content.is_short() and (content.starts_with_uppercase() or content.starts_with_number())
+
+    def has_short_height(self, content, doc_major_size):
+        return content.height < 2 * doc_major_size
+
+    def is_footer(self, content, len_limit, doc_major_font, doc_major_size, debug=False):
+        if debug:
+            print(repr(content))
+            print("len = ", len(content), ", short ? ", content.is_short(len_limit))
+            print("height = ", content.height, ", 2*MFS= ", 2 * doc_major_size)
+            print("major = ", TextPageResult.is_in_major_font(content, doc_major_font, doc_major_size))
+            print("whole cond = ", (content.starts_with_uppercase() or content.starts_with_number()) and (content.is_short(len_limit) or not TextPageResult.is_in_major_font(content, doc_major_font, doc_major_size)) and self.has_short_height(content, doc_major_size))
+
+        # Si respecte le pattern "NuméroPage\nTexte", vrai
+        if content.matches_footer_pattern():
+            return True
+
         # En bas de la page et commence par une majuscule
-        if content.position[1] < MAX_FOOTER_HEIGHT and (content.starts_with_uppercase() or content.starts_with_number()) and len(content) <= FOOTER_LEN_LIMIT:
+        if (content.starts_with_uppercase() or content.starts_with_number()) and (content.is_short(len_limit) or not TextPageResult.is_in_major_font(content, doc_major_font, doc_major_size)) and self.has_short_height(content, doc_major_size):
             return True
 
         return False
+
+    def same_y(self, content):
+        return [c for c in self._contents if c.is_voverlap(content)]
+
+    def process_footer(self, doc_major_font, doc_major_size, debug=False):
+        if debug:
+            print(f"************PROC FOOTER PAGE {self.number}***************\n")
+
+        while True:
+            # Récupère les contents en bas de la page
+            lowest_content = min(self._contents, key=lambda c: c.position[1])
+            low_contents = self.same_y(lowest_content)
+
+            # Si moins d'1 content en bas, ou plus de 2, fin
+            len_c = len(low_contents)
+            if len_c not in [1, 2]:
+                break
+
+            if debug:
+                print(f"------------- {len_c} contents -------------------")
+
+            if len_c == 1:
+                self.is_footer(low_contents[0], FOOTER_LEN_LIMIT, doc_major_font, doc_major_size, debug)
+            if len_c == 2:
+                self.is_footer(low_contents[0], FOOTER_LEN_LIMIT_SHORTEST, doc_major_font, doc_major_size, debug)
+                print("=======")
+                self.is_footer(low_contents[1], FOOTER_LEN_LIMIT_SHORTEST, doc_major_font, doc_major_size, debug)
+
+            # Si 2 contents: tous les 2 très courts
+            cond_2_contents = len_c == 2 and all(self.is_footer(c, FOOTER_LEN_LIMIT_SHORTEST, doc_major_font, doc_major_size) for c in low_contents)
+
+            # Si 1 content: moins court
+            cond_1_content = len_c == 1 and self.is_footer(low_contents[0], FOOTER_LEN_LIMIT, doc_major_font, doc_major_size)
+
+            # Arrête si on dépasse le quart de la page OU si une des 2 conditions précédentes sont pas respectées
+            if (lowest_content.position[1] > (self._height / 4) or (not cond_1_content and not cond_2_contents)):
+                break
+
+            # Ajoute au footer après verif
+            self._footer += low_contents
+
+            self.remove_contents(low_contents) # Supprime tous les contents du bas de la page
+
 
     def process_header_footer(self):
         new_contents = []
@@ -278,6 +378,8 @@ class TextContentResult:
     used fonts, a list of used size and the position of
     the block on the page from which it comes.
     """
+
+    footer_regex = re.compile(r"[0-9]+\n[A-Za-z_\ ]+")
 
     def __init__(self, elt):
         """ Constructor """
@@ -408,6 +510,12 @@ class TextContentResult:
     def vdistance(self, other_content):
         return self._container.vdistance(other_content.container)
 
+    def is_hoverlap(self, other_content):
+        return self._container.is_hoverlap(other_content.container)
+
+    def is_voverlap(self, other_content):
+        return self._container.is_voverlap(other_content.container)
+
     @property
     def container(self):
         return self._container
@@ -484,9 +592,11 @@ class TextContentResult:
     def starts_with_number(self):
         return starts_with_number(self._string)
 
+    def matches_footer_pattern(self):
+        return TextContentResult.footer_regex.match(self._string) is not None
 
-    def is_short(self):
-        return len(self) <= HEADER_LEN_LIMIT
+    def is_short(self, max_len):
+        return len(self) <= max_len
 
     def must_split(self):
         lines = self._string.splitlines()
@@ -529,6 +639,13 @@ class TextContentResult:
 
 
     def is_near_vertical(self, other):
+        #print("*********** IS NEAR VERT ***************")
+        #print(repr(self))
+        #print("-----------------")
+        #print(repr(other))
+        #print("-----------------")
+        #print(f"c1.MF '{self._major_font}'  =  c2.MF '{other._major_font}' ?    {self._major_font == other.major_font}")
+        #print(f"c1.MFS '{self._major_font_size}'  =  c2.MFS '{other._major_font_size}' ?    {self._major_font_size == other.major_font_size}")
         return approx_equal(self.hdistance(other), 0, 2) and\
             not (self._is_title or other._is_title) and\
             self._major_font == other.major_font and\
