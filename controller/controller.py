@@ -17,7 +17,6 @@ import os
 import sys
 import argparse
 from alive_progress import alive_bar
-from simple_term_menu import TerminalMenu
 import inquirer
 
 # import sys: Ce module donne accès à tous les arguments de ligne de commande
