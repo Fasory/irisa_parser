@@ -323,3 +323,15 @@ def search_target_x_position(contents, target_x, width):
             target = content.position[0]
             break
     return target
+
+
+def is_an_affiliation(lower_line):
+    return "laborato" in lower_line or \
+           "universit" in lower_line or \
+           "department" in lower_line or \
+           "département" in lower_line or \
+           "institu" in lower_line or \
+           "école" in lower_line or \
+           "school" in lower_line or \
+           "college" in lower_line or \
+           "inc." in lower_line

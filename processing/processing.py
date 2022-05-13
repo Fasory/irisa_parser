@@ -8,7 +8,7 @@ from extraction.TextExtractionResult import TextAlignment
 from .TextProcessingResult import TextProcessingResult, Author
 from processing.tools import largest_contents, top_content, closer_content, rm_multiple_spaces, clear_beginning_line, \
     hard_clear_line, percent_proper_names, under_contents, build_mail, build_real_authors, match, \
-    research_match_by_first_letter, column_extraction, default_extraction
+    research_match_by_first_letter, column_extraction, default_extraction, is_an_affiliation
 from .section import section_extraction
 
 
@@ -16,9 +16,10 @@ def run(result, final_stat):
     text_processing_result = TextProcessingResult(result.filename)
     text_processing_result.title, content_title = find_title(result.pages)
     text_processing_result.authors = link_mails(find_authors(result.pages, content_title), find_mails(result.pages))
-    #text_processing_result.abstract, content_abstract = find_abstract(result.pages)
+    find_affiliation(result.pages, text_processing_result)
+    # text_processing_result.abstract, content_abstract = find_abstract(result.pages)
     section_extraction(result, text_processing_result)
-    #text_processing_result.references = find_references(result.pages)
+    # text_processing_result.references = find_references(result.pages)
     restitution.run(text_processing_result, final_stat)
 
 
@@ -73,10 +74,7 @@ def find_authors(pages, title):
             # on détecte les noms
             names = [ent.text.strip() for ent in doc.ents if ent.label_ == 'PERSON']
             # si la ligne contient un mot clef, elle est instantanément ignorée
-            if ("laborato" in lower_clear_line or "universit" in lower_clear_line
-                    or "department" in lower_clear_line or "département" in lower_clear_line
-                    or "institue" in lower_clear_line or "école" in lower_clear_line
-                    or "school" in lower_clear_line or "college" in lower_clear_line):
+            if is_an_affiliation(lower_clear_line):
                 break
             # si au moins un nom a été détecté, on ajoute toute la ligne
             elif len(names) > 0 and (max_nb_names_in_line is None or len(words) < max_nb_names_in_line + 3):
@@ -105,7 +103,7 @@ def find_authors(pages, title):
     # si on n'a aucun auteur, on retourne la liste de secours
     if not authors:
         authors = authors_assistance
-    # sinon on complète la lsite des auteurs par en supposant que tous les contents à la même hauteur d'un content
+    # sinon on complète la liste des auteurs par en supposant que tous les contents à la même hauteur d'un content
     # reconnu comme auteur est considéré comme un auteur également
     else:
         for content in skip_contents:
@@ -114,6 +112,40 @@ def find_authors(pages, title):
     # détection des couples (prénom, nom) des auteurs et transformation en liste d'objet Author
     return build_real_authors(authors)
 
+
+def find_affiliation(pages, text_processing_result):
+    if len(pages) == 0:
+        return
+    contents = pages[0].contents_higher()
+    for content in contents:
+        # on liste les auteurs qui ont un lien avec le content
+        targets = []
+        for author in text_processing_result.authors:
+            if author.name in content.string or (author.mail != "N/A" and author.mail.split('@')[0] in content.string):
+                targets.append(author)
+        # si on a au moins un lien
+        if targets:
+            # on recherche toutes les affiliations
+            affiliation = ""
+            find = False
+            lines = content.string.split('\n')
+            n_lines = len(lines)
+            i = 0
+            while i < n_lines:
+                if is_an_affiliation(lines[i].lower()):
+                    find = True
+                    while len(lines[i]) > 0 and lines[i][0] not in "AZERTUIOPQSDFGHJKLMWXCVBNÉ":
+                        lines[i] = lines[i][1:]
+                elif find and (i < n_lines - 1 and lines[i + 1] and '@' == lines[i + 1][0] or '@' in lines[i]):
+                    find = False
+                if find:
+                    if affiliation != "":
+                        affiliation += '\n'
+                    affiliation += lines[i]
+                i += 1
+            # on link les affiliations
+            for target in targets:
+                target.add_affiliation(affiliation)
 
 def find_mails(pages):
     """
@@ -127,25 +159,25 @@ def find_mails(pages):
         return mails
     contents = pages[0].contents_higher()
     for content in contents:
-        # on part du principe que s'il y a un '@', le content possède forcément une adresse mail
-        if '@' in content.string:
+        if '@' in content.string:  # mail s'il y a un '@'
             lines = content.string.split('\n')
-            # on recherche les lignes contenant '@'
-            for i in range(len(lines)):
-                if '@' in lines[i]:
-                    # si c'est le 1er caractère, alors le début de l'adresse commence à la ligne précédente
-                    if '@' == lines[i][0] and i > 0:
-                        # si le mail continue sur la ligne suivante
-                        if lines[i].strip()[-1] in ".-" and i < (len(lines) - 1):
-                            mails += build_mail("".join([lines[i - 1], lines[i], lines[i + 1]]))
-                        else:
-                            mails += build_mail("".join([lines[i - 1], lines[i]]))
-                    else:
-                        # si le mail continue sur la ligne suivante
-                        if lines[i].strip()[-1] in ".-" and i < (len(lines) - 1):
-                            mails += build_mail("".join([lines[i], lines[i + 1]]))
-                        else:
-                            mails += build_mail(lines[i])
+            n_lines = len(lines)
+            i = 0
+            while i < n_lines:
+                if i < n_lines - 1 and lines[i + 1] and '@' == lines[i + 1][0]:     # '@' au début de la ligne suivante
+                    if lines[i + 1].strip()[-1] in ".-" and i < n_lines - 2:        # continue après la ligne '@'
+                        mails += build_mail("".join([lines[i], lines[i + 1], lines[i + 2]]))
+                        i += 2
+                    else:                                                           # ne continue pas après la ligne '@'
+                        mails += build_mail("".join([lines[i], lines[i + 1]]))
+                        i += 1
+                elif '@' in lines[i]:                                               # '@' au milieu de la ligne
+                    if lines[i].strip()[-1] in ".-" and i < n_lines - 1:            # continue après la ligne '@'
+                        mails += build_mail("".join([lines[i], lines[i + 1]]))
+                        i += 1
+                    else:                                                           # ne continue pas après la ligne '@'
+                        mails += build_mail(lines[i])
+                i += 1
     return mails
 
 
@@ -194,14 +226,14 @@ def link_mails(authors, mails):
                     # reconstruire et on construit le nom du nouvel auteur
                     else:
                         new_authors.append(Author(current_author,
-                                                  None if current_mail is None else mails_map[current_mail]))
+                                                  "" if current_mail is None else mails_map[current_mail]))
                         if current_mail is not None:
                             mails_linked.append(current_mail)
                         current_author = word
                         current_mail = None
         if current_author is not None:
             new_authors.append(Author(current_author,
-                                      None if current_mail is None else mails_map[current_mail]))
+                                      "" if current_mail is None else mails_map[current_mail]))
             if current_mail is not None:
                 mails_linked.append(current_mail)
     # dernière tentative d'assotiation pour les mails nom match
@@ -260,7 +292,7 @@ def find_references(pages):
     # Cas où la première référence se trouve dans le même content que le titre de la section "References"
     if pos > -1:
         standard = section
-        references = standard.string[pos+1:]
+        references = standard.string[pos + 1:]
     else:
         standard = closer_content(pages[target].contents, section)
         if standard is None:
