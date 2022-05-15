@@ -15,7 +15,7 @@ def run(extraction_result, final_stat):
 
     preprocessed = TextPreprocessingResult(filename, pages)
     #preprocessed.print_result()
-    preprocessed.print_pages()
+    #preprocessed.print_pages()
     if not DEBUG:
         processing.run(preprocessed, final_stat)
         

@@ -70,8 +70,8 @@ class SafeAnalyzer:
             return
         section = None
         for content in self.contents:
-            print("------------------------------")
-            print(content.string)
+            #print("------------------------------")
+            #print(content.string)
             new_section = self._match_section(content, search)
             if new_section is None:
                 self._buffer += content.string

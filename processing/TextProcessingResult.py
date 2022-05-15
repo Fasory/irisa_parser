@@ -112,10 +112,16 @@ class TextProcessingResult:
 
 class Author:
 
-    def __init__(self, name, mail="N/A", affiliation="N/A"):
+    def __init__(self, name, mail="", affiliation=""):
         self._name = name
-        self._mail = mail
-        self._affiliation = affiliation
+        if mail == "" or mail is None:
+            self._mail = "N/A"
+        else:
+            self._mail = mail
+        if affiliation == "" or affiliation is None:
+            self._affiliation = "N/A"
+        else:
+            self._affiliation = affiliation
 
     @property
     def name(self):
@@ -134,4 +140,14 @@ class Author:
 
     @name.setter
     def name(self, value):
-        self._mail = value
+        self._name = value
+
+    @affiliation.setter
+    def affiliation(self, value):
+        self._affiliation = value
+
+    def add_affiliation(self, value):
+        if self._affiliation == "N/A":
+            self._affiliation = value
+        elif value not in self._affiliation:
+            self._affiliation += "\n" + value
