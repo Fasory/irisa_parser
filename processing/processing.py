@@ -17,9 +17,9 @@ def run(result, final_stat):
     text_processing_result.title, content_title = find_title(result.pages)
     text_processing_result.authors = link_mails(find_authors(result.pages, content_title), find_mails(result.pages))
     find_affiliation(result.pages, text_processing_result)
-    # text_processing_result.abstract, content_abstract = find_abstract(result.pages)
-    section_extraction(result, text_processing_result)
-    # text_processing_result.references = find_references(result.pages)
+    text_processing_result.abstract, content_abstract = find_abstract(result.pages)
+    section_extraction(result, text_processing_result, True)
+    text_processing_result.references = find_references(result.pages)
     restitution.run(text_processing_result, final_stat)
 
 

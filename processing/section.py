@@ -45,7 +45,7 @@ class Section(Enum):
 
 class SafeAnalyzer:
 
-    def __init__(self, before_process, after_process):
+    def __init__(self, before_process, after_process, ignore_abstract):
         # Attributes
         self.contents = before_process.contents
         self.result = after_process
@@ -54,6 +54,7 @@ class SafeAnalyzer:
         self._buffer = ""
         # Init process
         self._search_section_format()
+        self._ignore_abstract = ignore_abstract
 
     def _search_section_format(self):
         for content in self.contents:
@@ -122,7 +123,7 @@ class SafeAnalyzer:
         return None
 
     def _flush_buffer(self, section):
-        if section == Section.ABSTRACT:
+        if section == Section.ABSTRACT and not self._ignore_abstract:
             self.result.abstract = self._buffer
         elif section == Section.INTRODUCTION:
             self.result.introduction = self._buffer
@@ -137,6 +138,6 @@ class SafeAnalyzer:
         self._buffer = ""
 
 
-def section_extraction(result, text_processing_result):
-    analyzer = SafeAnalyzer(result, text_processing_result)
+def section_extraction(result, text_processing_result, ignore_abstract = False):
+    analyzer = SafeAnalyzer(result, text_processing_result, ignore_abstract)
     analyzer.processing()
