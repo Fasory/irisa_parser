@@ -94,7 +94,7 @@ class TextPreprocessingResult:
             last_pos = first_pos
             j = i
 
-            while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1]):
+            while j + 1 < len(self._contents) and self._contents[j].is_near_vertical(self._contents[j + 1], self._pages[0].height):
                 next = self._contents[j + 1]
                 merged.vertical_merge(next)
                 last_pos = next.position
@@ -134,6 +134,7 @@ class TextPreprocessingResult:
         for p in self._pages:
             p.vertical_merge()
             p.process_footer(self._major_font, self._major_font_size, debug)
+            p.process_header(self._major_font, self._major_font_size, debug)
             if p.number > 1:
                 p.process_columns()
 
