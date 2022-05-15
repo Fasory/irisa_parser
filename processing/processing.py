@@ -35,7 +35,7 @@ def find_title(pages):
     title = top_content(largest_contents(pages[0].contents_higher(), TextAlignment.HORIZONTAL))
     if title is None:
         return "N/A", None
-    return title.string.replace("\n", " "), title
+    return title.string.replace("\n", " ").strip(), title
 
 
 def find_authors(pages, title):
