@@ -16,7 +16,8 @@ TITLE_LEN_LIMIT = 50
 
 APPROX_EQ_LIMIT = 10
 
-TITLE_NO_REGEX = re.compile(r"[0-9]+(\.[0-9]+)+(\.)?")
+TITLE_DIGIT_REGEX = r"[IVXLDCM0-9]"
+TITLE_NO_REGEX = re.compile(TITLE_DIGIT_REGEX + r"+(\." + TITLE_DIGIT_REGEX + r"+)*(\.)?")
 
 TITLES = ["abstract", "introduction", "acknowledgement", "acknowledgment", "conlusion", "discussion", "references"]
 
@@ -52,14 +53,19 @@ def string_is_title(s, debug=False):
         print("Word = ", EnglishVocab.instance().check_no_proper_name(s))
         print("whole = ", len(s) <= TITLE_LEN_LIMIT and (TITLE_NO_REGEX.match(s) is not None) and (not any(s.lower().startswith(t) for t in TITLES)) and (starts_with_uppercase(s) or starts_with_number(s)) and EnglishVocab.instance().check_no_proper_name(s))
 
+    # Il faut forcément respecter la taille limite
+    if len(s) > TITLE_LEN_LIMIT:
+        return False
+
     # Si commence par un titre (introduction, abstract, acknwoledgments, ...) => True
     if any(s.lower().startswith(t) for t in TITLES):
         return True
 
     # Si commence par un numéro de titre (1.2....) => True
-    return len(s) <= TITLE_LEN_LIMIT and\
-        (TITLE_NO_REGEX.match(s) is not None) and\
-        (starts_with_uppercase(s) or starts_with_number(s)) and\
+    if TITLE_NO_REGEX.match(s) is not None:
+        return True
+
+    return (starts_with_uppercase(s) or starts_with_number(s)) and\
         EnglishVocab.instance().check_no_proper_name(s)
 
 
@@ -361,7 +367,6 @@ class TextPageResult:
 
             # Arrête si on dépasse les 3/4 quarts de la page OU si une des 2 conditions précédentes sont pas respectées
             if (highest_content.position[1] < (self._height * 3 / 4) or (not cond_1_content and not cond_2_contents)):
-                print("BREAK")
                 break
 
             # Ajoute au header après verif
@@ -564,6 +569,10 @@ class TextContentResult:
         return self._first_font
 
     @property
+    def is_title(self):
+        return self._is_title
+
+    @property
     def height(self):
         return self._container.height
 
@@ -646,6 +655,16 @@ class TextContentResult:
 
         l1 = lines[0]
 
+        #print(repr(self))
+        #print("1st F: ", self._first_font)
+        #print("1st FS: ", self._first_font_size)
+        #print("major F: ", self.major_font)
+        #print("major FS: ", self.major_font_size)
+        #print("TITLE ?")
+        #string_is_title(l1, debug=True)
+
+        #print("must split = ", string_is_title(l1) and (self._first_font != self._major_font or self._first_font_size != self._major_font_size))
+
         # La première est un titre ET a une police ou taille différente du reste du content
         return string_is_title(l1) and (self._first_font != self._major_font or self._first_font_size != self._major_font_size)
 
@@ -689,16 +708,16 @@ class TextContentResult:
         #print(f"c1.MFS '{self._major_font_size}'  =  c2.MFS '{other._major_font_size}' ?    {self._major_font_size == other.major_font_size}")
         
         # Si dans le quart du haut => ne fusionne pas
-        upper_half = 0.5 * page_height
-        in_upper_half = self._position[3] >= upper_half or other.position[3] >= upper_half
+        #upper_half = 0.5 * page_height
+        #in_upper_half = self._position[3] >= upper_half or other.position[3] >= upper_half
 
-        return not in_upper_half and\
-            not (string_is_title(self._string) or string_is_title(other.string)) and\
+        return not (string_is_title(self._string) or string_is_title(other.string)) and\
             approx_equal(self.hdistance(other), 0, 2) and\
             not (self._is_title or other._is_title) and\
             self._major_font == other.major_font and\
             self._major_font_size == other.major_font_size and\
-            self.vdistance(other) <= self._major_font_size
+            self.vdistance(other) <= self._major_font_size #and\
+            #not in_upper_half
 
     def vertical_merge(self, other, splitted_word=False):
         self._string += other.string

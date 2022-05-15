@@ -40,7 +40,7 @@ class TextPreprocessingResult:
         self._contents = []
 
         self.compute_fonts()
-        self.preprocess2()
+        self.preprocess()
 
 
     def compute_fonts(self):
@@ -75,8 +75,16 @@ class TextPreprocessingResult:
     def separate_titles(self):
         new_contents = []
         for c in self._contents:
+            #print("********* SPLIT **********")
             if c.must_split():
+                #print("====")
+
                 c1, c2 = c.split()
+                #print(repr(c1))
+                #print(c1.is_title)
+                #print("---")
+                #print(repr(c2))
+
                 new_contents.append(c1)
                 new_contents.append(c2)
             else:
@@ -116,7 +124,8 @@ class TextPreprocessingResult:
 
     def preprocess(self):
         for p in self._pages:
-            p.process_footer()
+            p.vertical_merge()
+            p.process_footer(self._major_font, self._major_font_size)
             if p.number > 1:
                 p.process_columns()
 
