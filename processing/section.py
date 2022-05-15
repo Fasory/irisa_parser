@@ -76,9 +76,11 @@ class SafeAnalyzer:
             new_section = self._match_section(content, search)
             if new_section is None:
                 self._buffer += content.string
+                #print("====== ADDED TO BUFFER")
             else:
                 if new_section != section:
                     self._flush_buffer(section)
+                    #print("====== FLUSH BUFFER")
                     # Nouvelle section reconnue
                     if new_section != Section.ANONYMOUS:
                         search = new_section.next()
@@ -89,8 +91,10 @@ class SafeAnalyzer:
                         # Fin de traitement
                         if search == Section.FINAL:
                             break
+                    #print("====== SECTION ", section)
                 if new_section == Section.ABSTRACT and len(content.string) > 20 or new_section == Section.BODY:
                     self._buffer += content.string
+                    #print("====== ADDED TO BUFFER (SPECIAL)")
         self._flush_buffer(section)
 
     def _match_section(self, content, section):
@@ -99,6 +103,8 @@ class SafeAnalyzer:
         if section <= Section.ABSTRACT:
             if "abstract" in string[:15] or "this article" in string[:75]:
                 return Section.ABSTRACT
+            else:
+                return None
         if section <= Section.KEYWORDS:
             if "keywords" in string[:15] or "index terms" in string[:15]:
                 return Section.KEYWORDS
