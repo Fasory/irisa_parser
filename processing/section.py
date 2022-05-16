@@ -52,9 +52,11 @@ class SafeAnalyzer:
         self._title_font = None
         self._title_size = None
         self._buffer = ""
+        self._title_up = False
+        self._title_note = -1
+        self._ignore_abstract = ignore_abstract
         # Init process
         self._search_section_format()
-        self._ignore_abstract = ignore_abstract
 
     def _search_section_format(self):
         for content in self.contents:
@@ -62,6 +64,14 @@ class SafeAnalyzer:
                 if label in content.string.strip().lower()[:20]:
                     self._title_font = content.major_font
                     self._title_size = content.major_font_size
+                    if content.string.upper() == content.string:
+                        self._title_up = True
+                    string_int = content.string[:5].split('.')[0]
+                    try:
+                        string_int = int(string_int)
+                        self._title_note = 0
+                    except:
+                        pass
                     break
             if self._title_size is not None:
                 break
@@ -108,23 +118,35 @@ class SafeAnalyzer:
         if section <= Section.KEYWORDS:
             if "keywords" in string[:15] or "index terms" in string[:15]:
                 return Section.KEYWORDS
-        if section <= Section.REFERENCES:
-            if "references" in string[:15]:
-                return Section.REFERENCES
-        # Sections avec format classique
-        if content.major_font == self._title_font and content.major_font_size == self._title_size:
-            if section <= Section.INTRODUCTION:
-                if "introduction" in string[:20]:
-                    return Section.INTRODUCTION
-            if section <= Section.BODY:
-                if self._match_section(content, Section.DISCUSSION) == Section.ANONYMOUS:
-                    return Section.BODY
+        # Section générale
+        if self._title_up and content.string.upper() != content.string:
+            return None
+        string_int = -1
+        try:
+            string_int = int(content.string[:5].split('.')[0])
+            if self._title_note < string_int:
+                self._title_note = string_int
+        except:
+            pass
+        if self._title_note == -1 or self._title_note == string_int:
             if section <= Section.DISCUSSION:
                 if "discussion" in string[:20]:
                     return Section.DISCUSSION
             if section <= Section.CONCLUSION:
                 if "conclusion" in string[:20]:
                     return Section.CONCLUSION
+        if section <= Section.REFERENCES:
+            if "references" in string[:15]:
+                return Section.REFERENCES
+        # Sections avec format classique
+        if content.major_font == self._title_font and content.major_font_size == self._title_size and \
+                (self._title_note == -1 or self._title_note == string_int):
+            if section <= Section.INTRODUCTION:
+                if "introduction" in string[:20]:
+                    return Section.INTRODUCTION
+            if section <= Section.BODY:
+                if self._match_section(content, Section.DISCUSSION) == Section.ANONYMOUS:
+                    return Section.BODY
             return Section.ANONYMOUS
         return None
 
@@ -144,6 +166,6 @@ class SafeAnalyzer:
         self._buffer = ""
 
 
-def section_extraction(result, text_processing_result, ignore_abstract = False):
+def section_extraction(result, text_processing_result, ignore_abstract=False):
     analyzer = SafeAnalyzer(result, text_processing_result, ignore_abstract)
     analyzer.processing()
