@@ -19,8 +19,65 @@ def run(result, final_stat):
     find_affiliation(result.pages, text_processing_result)
     text_processing_result.abstract, content_abstract = find_abstract(result.pages)
     section_extraction(result, text_processing_result, True)
+    text_processing_result.discussion = find_discussion(result)
+    text_processing_result.conclusion = find_conclusion(result)
     text_processing_result.references = find_references(result.pages)
     restitution.run(text_processing_result, final_stat)
+
+
+def find_conclusion(result):
+    conclusion = ""
+    TAGS = ["reference", "discussion", "acknowledgement"]
+    max_contents = len(result.contents)
+    i = max_contents-1
+    while i >= 0:
+        print(result.contents[i].string)
+        if "conclusion" in result.contents[i].string[:20].lower():
+            i += 1
+            break
+        i -= 1
+    if i > -1:
+        again = True
+        while i < max_contents and again:
+            for TAG in TAGS:
+                if TAG in result.contents[i].string[:20].lower():
+                    again = False
+                    break
+            if again is False:
+                break
+            if conclusion == "":
+                conclusion = result.contents[i].string
+            else:
+                conclusion += "\n" + result.contents[i].string
+            i += 1
+    return conclusion
+
+
+def find_discussion(result):
+    discussion = ""
+    TAGS = ["reference", "conclusion", "acknowledgement"]
+    max_contents = len(result.contents)
+    i = max_contents - 1
+    while i >= 0:
+        if "discussion" in result.contents[i].string[:20].lower():
+            i += 1
+            break
+        i -= 1
+    if i > -1:
+        again = True
+        while i < max_contents and again:
+            for TAG in TAGS:
+                if TAG in result.contents[i].string[:20].lower():
+                    again = False
+                    break
+            if again is False:
+                break
+            if discussion == "":
+                discussion = result.contents[i].string
+            else:
+                discussion += "\n" + result.contents[i].string
+            i += 1
+    return discussion
 
 
 def find_title(pages):
@@ -32,7 +89,7 @@ def find_title(pages):
     """
     if len(pages) == 0:
         return "N/A"
-    title = top_content(largest_contents(pages[0].contents_higher(), TextAlignment.HORIZONTAL))
+    title = top_content(largest_contents(pages[0].contents_higher(2), TextAlignment.HORIZONTAL))
     if title is None:
         return "N/A", None
     return title.string.replace("\n", " ").strip(), title
