@@ -31,7 +31,6 @@ def find_conclusion(result):
     max_contents = len(result.contents)
     i = max_contents-1
     while i >= 0:
-        print(result.contents[i].string)
         if "conclusion" in result.contents[i].string[:20].lower():
             i += 1
             break
