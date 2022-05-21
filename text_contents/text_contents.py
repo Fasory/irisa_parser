@@ -375,26 +375,42 @@ class TextPageResult:
             self.remove_contents(high_contents) # Supprime tous les contents du haut de la page
 
 
-    def is_centered(self, content):
+    def is_centered(self, content, debug=False):
         mid_x = self.width / 2
         content_center = content.get_center_x()
-        return approx_equal(mid_x, content_center)
+        if debug:
+            print(f"CENTER: page mid ({mid_x}) == content mid ({content_center}) ? ", approx_equal(mid_x, content_center, 20))
+        return approx_equal(mid_x, content_center, 20)
 
-    def is_on_left(self, content):
+    def is_on_left(self, content, debug=False):
         mid_x = self.width / 2
         content_center = content.get_center_x()
+        if debug:
+            print(f"LEFT: content mid ({content_center}) <= page mid ({mid_x}) ? ", content_center <= mid_x)
         return content_center <= mid_x
 
-    def is_on_right(self, content):
+    def is_on_right(self, content, debug=False):
         mid_x = self.width / 2
         content_center = content.get_center_x()
+        if debug:
+            print(f"RIGHT: content mid ({content_center}) > page mid ({mid_x}) ? ", content_center > mid_x)
         return content_center > mid_x
 
-    def process_columns(self):
+    def process_columns(self, debug=False):
+        if debug:
+            print(f"************ COLUMNS PAGE {self.number} ********************")
         # Séparation en 2 listes indépendantes
         left_contents = []
         right_contents = []
         for c in self._contents:
+            if debug:
+                print("------------")
+                print(repr(c))
+                print("===")
+                self.is_centered(c, True)
+                self.is_on_right(c, True)
+                self.is_on_left(c, True)
+
             if self.is_centered(c):
                 left_contents.append(c)
             elif self.is_on_right(c):
