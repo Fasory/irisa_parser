@@ -187,11 +187,11 @@ class TextPageResult:
     def change_last_content(self, content):
         self._contents[-1] = content
 
-    def contents_higher(self):
+    def contents_higher(self, min_len=0):
         proper = []
         limit = self._height / 2
         for content in self._contents:
-            if max(content.position[1], content.position[3]) >= limit:
+            if max(content.position[1], content.position[3]) >= limit and len(content.string.split('\n')[0]) >= min_len:
                 proper.append(content)
         return proper
 

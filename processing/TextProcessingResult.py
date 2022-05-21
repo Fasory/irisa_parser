@@ -12,8 +12,8 @@ class TextProcessingResult:
     data needed to write the output text file
     """
 
-    def __init__(self, filename, title="N/A", authors="N/A", abstract="N/A", introduction="N/A", body="N/A",
-                 discussion="N/A", conclusion="N/A", references="N/A"):
+    def __init__(self, filename, title="", authors="", abstract="", introduction="", body="",
+                 discussion="", conclusion="", references=""):
         """
         Create TextProcessingResult with these 4 pieces of information:
             - PDF file name
@@ -114,12 +114,12 @@ class Author:
 
     def __init__(self, name, mail="", affiliation=""):
         self._name = name
-        if mail == "" or mail is None:
-            self._mail = "N/A"
+        if mail is None:
+            self._mail = ""
         else:
             self._mail = mail
-        if affiliation == "" or affiliation is None:
-            self._affiliation = "N/A"
+        if affiliation is None:
+            self._affiliation = ""
         else:
             self._affiliation = affiliation
 
@@ -147,7 +147,7 @@ class Author:
         self._affiliation = value
 
     def add_affiliation(self, value):
-        if self._affiliation == "N/A":
+        if self._affiliation == "":
             self._affiliation = value
         elif value not in self._affiliation:
-            self._affiliation += "\n" + value
+            self._affiliation += " " + value
